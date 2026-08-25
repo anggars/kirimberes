@@ -17,6 +17,7 @@ import Link from "next/link"
 import { DeleteTransactionButton } from "@/components/delete-transaction-button"
 import { ExportExcelButton } from "@/components/export-excel-button"
 import { PrintQRButton } from "@/components/print-qr-button"
+import { TrackingModal } from "@/components/tracking-modal"
 import { getSession } from "@/lib/session"
 
 export default async function TransactionsPage() {
@@ -104,10 +105,7 @@ export default async function TransactionsPage() {
                       <div className="flex flex-wrap gap-1.5 max-w-62.5">
                         {tx.invoices.map((inv) => (
                           <div key={inv.id} className="flex items-center gap-1">
-                            <Badge variant="outline" className="bg-background flex items-center gap-1 font-normal text-xs border-primary/30">
-                              <FileText className="h-3 w-3 text-primary" />
-                              {inv.invoice_no}
-                            </Badge>
+                            <TrackingModal invoice_no={inv.invoice_no} />
                             <PrintQRButton invoice_no={inv.invoice_no} />
                           </div>
                         ))}
