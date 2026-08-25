@@ -15,8 +15,13 @@ import { Button } from "@/components/ui/button"
 import { PlusCircle, FileText, Truck, Users } from "lucide-react"
 import Link from "next/link"
 import { DeleteTransactionButton } from "@/components/delete-transaction-button"
+import { ExportExcelButton } from "@/components/export-excel-button"
+import { getSession } from "@/lib/session"
 
 export default async function TransactionsPage() {
+  const session = await getSession()
+  const isAdmin = session?.role === "ADMIN"
+
   const transactions = await prisma.transaction.findMany({
     orderBy: { transaction_date: 'desc' },
     include: {
@@ -36,12 +41,15 @@ export default async function TransactionsPage() {
             Data transaksi logistik dan pengiriman kargo.
           </p>
         </div>
-        <Link href="/transactions/new">
-          <Button className="shadow-md shadow-primary/20">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Buat Manifest Baru
-          </Button>
-        </Link>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <ExportExcelButton transactions={transactions} />
+          <Link href="/transactions/new" className="flex-1 sm:flex-none">
+            <Button className="w-full shadow-md shadow-primary/20">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Buat Manifest
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <Card>
@@ -58,7 +66,7 @@ export default async function TransactionsPage() {
                   <TableHead>Tanggal</TableHead>
                   <TableHead>Kru & Kendaraan</TableHead>
                   <TableHead>Invoices</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
+                  {isAdmin && <TableHead className="text-right">Aksi</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -101,14 +109,16 @@ export default async function TransactionsPage() {
                         ))}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <DeleteTransactionButton transaction_no={tx.transaction_no} />
-                    </TableCell>
+                    {isAdmin && (
+                      <TableCell className="text-right">
+                        <DeleteTransactionButton transaction_no={tx.transaction_no} />
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
                 {transactions.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
+                    <TableCell colSpan={isAdmin ? 5 : 4} className="h-24 text-center">
                       Belum ada transaksi manifest.
                     </TableCell>
                   </TableRow>

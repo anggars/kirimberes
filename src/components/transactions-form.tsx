@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Crew, Vehicle } from "@prisma/client"
 import { Button } from "@/components/ui/button"
@@ -22,8 +22,22 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     invoices: [""]
   })
 
+  // Auto-generate transaction number on mount
+  useEffect(() => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    const hours = String(now.getHours()).padStart(2, '0')
+    const minutes = String(now.getMinutes()).padStart(2, '0')
+    const seconds = String(now.getSeconds()).padStart(2, '0')
+    
+    const autoNumber = `TRF-${year}${month}${day}-${hours}${minutes}${seconds}`
+    setFormData(prev => ({ ...prev, transaction_no: autoNumber }))
+  }, [])
+
   const handleAddInvoice = () => {
-    setFormData({ ...formData, invoices: [...formData.invoices, ""] })
+    setFormData(prev => ({ ...prev, invoices: [...prev.invoices, ""] }))
   }
 
   const handleRemoveInvoice = (index: number) => {
@@ -35,6 +49,26 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     const newInvoices = [...formData.invoices]
     newInvoices[index] = value
     setFormData({ ...formData, invoices: newInvoices })
+  }
+
+  // Handle barcode scanner 'Enter' keypress
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === 'Enter') {
+      e.preventDefault() // Prevent form submission
+      
+      // Only add a new row if the current one is not empty
+      if (formData.invoices[index].trim() !== "") {
+        handleAddInvoice()
+        
+        // Use timeout to wait for React to render the new input, then focus it
+        setTimeout(() => {
+          const inputs = document.querySelectorAll('.invoice-input')
+          if (inputs.length > index + 1) {
+            ;(inputs[index + 1] as HTMLInputElement).focus()
+          }
+        }, 50)
+      }
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,10 +105,12 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">No. Transaksi / Surat Jalan</label>
+              <label className="text-sm font-medium">No. Transaksi / Surat Jalan (Otomatis)</label>
               <Input 
                 required
-                placeholder="Misal: TRF-20231001-01"
+                readOnly
+                className="bg-muted font-mono"
+                placeholder="TRF-YYYYMMDD-HHMMSS"
                 value={formData.transaction_no}
                 onChange={(e) => setFormData({...formData, transaction_no: e.target.value.toUpperCase()})}
               />
@@ -159,10 +195,12 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                   <span className="text-sm font-medium text-muted-foreground w-6">{index + 1}.</span>
                   <Input 
                     required
-                    placeholder="Masukkan Nomor Invoice"
+                    autoFocus={index === formData.invoices.length - 1 && index !== 0}
+                    placeholder="Scan Barcode / Ketik Invoice + Enter"
                     value={inv}
                     onChange={(e) => handleInvoiceChange(index, e.target.value)}
-                    className="flex-1"
+                    onKeyDown={(e) => handleKeyDown(e, index)}
+                    className="flex-1 invoice-input"
                   />
                   {formData.invoices.length > 1 && (
                     <Button 

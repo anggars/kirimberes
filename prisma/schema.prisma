@@ -7,6 +7,14 @@ datasource db {
   url      = env("NEON_DATABASE_URL")
 }
 
+model User {
+  id       String @id @default(cuid())
+  username String @unique
+  password String
+  role     String @default("USER") // ADMIN or USER
+  name     String?
+}
+
 model Crew {
   id      String @id
   name    String

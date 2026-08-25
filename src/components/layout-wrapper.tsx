@@ -3,22 +3,43 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Truck, Users, LayoutDashboard, Moon, Sun, Menu } from "lucide-react"
+import { Truck, Users, LayoutDashboard, Moon, Sun, Menu, LogOut } from "lucide-react"
 import { useTheme } from "next-themes"
+import { logout } from "@/app/actions/auth"
 
 import { Button } from "@/components/ui/button"
 
-export function LayoutWrapper({ children }: { children: React.ReactNode }) {
+export function LayoutWrapper({ 
+  children,
+  session
+}: { 
+  children: React.ReactNode
+  session?: { role: string, name?: string | null } | null 
+}) {
   const pathname = usePathname()
   const { setTheme, theme } = useTheme()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
 
-  const navItems = [
-    { href: "/", label: "Beranda", icon: LayoutDashboard },
-    { href: "/transactions", label: "Manifest Pengiriman", icon: Truck },
-    { href: "/crews", label: "Data Supir & Kenek", icon: Users },
-    { href: "/vehicles", label: "Data Kendaraan", icon: Truck },
+  // If we are on the login page, don't show the sidebar
+  if (pathname === "/login") {
+    return (
+      <div className="min-h-screen bg-background">
+        {children}
+      </div>
+    )
+  }
+
+  const allNavItems = [
+    { href: "/", label: "Beranda", icon: LayoutDashboard, adminOnly: true },
+    { href: "/transactions", label: "Manifest Pengiriman", icon: Truck, adminOnly: false },
+    { href: "/crews", label: "Data Supir & Kenek", icon: Users, adminOnly: true },
+    { href: "/vehicles", label: "Data Kendaraan", icon: Truck, adminOnly: true },
   ]
+
+  const navItems = allNavItems.filter(item => {
+    if (session?.role !== "ADMIN" && item.adminOnly) return false
+    return true
+  })
 
   return (
     <div className="flex h-screen bg-background">
@@ -42,12 +63,20 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
             <Menu className="h-5 w-5" />
           </Button>
         </div>
+        
+        {session && (
+          <div className="px-6 py-4 border-b bg-muted/20">
+            <p className="text-sm font-medium text-muted-foreground">Login sebagai:</p>
+            <p className="font-semibold">{session.name || session.role}</p>
+          </div>
+        )}
+
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {navItems.map((item) => (
             <Link key={item.href} href={item.href}>
               <span
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                  pathname === item.href
+                  pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/")
                     ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
@@ -58,7 +87,7 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
         </nav>
-        <div className="p-4 border-t">
+        <div className="p-4 border-t space-y-2">
           <Button
             variant="outline"
             className="w-full justify-start gap-3 rounded-xl"
@@ -75,6 +104,15 @@ export function LayoutWrapper({ children }: { children: React.ReactNode }) {
                 <span>Mode Gelap</span>
               </>
             )}
+          </Button>
+          
+          <Button
+            variant="destructive"
+            className="w-full justify-start gap-3 rounded-xl"
+            onClick={() => logout()}
+          >
+            <LogOut className="h-5 w-5" />
+            <span>Keluar (Logout)</span>
           </Button>
         </div>
       </aside>
