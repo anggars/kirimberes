@@ -67,114 +67,89 @@ async function main() {
   console.log('Vehicles seeded.')
 
   // Seed Transactions & Invoices
-  // TR-003
-  await prisma.transaction.upsert({
-    where: { transaction_no: 'TR-003' },
-    update: {},
-    create: {
-      transaction_no: 'TR-003',
-      transaction_date: new Date('2026-08-24T00:00:00.000Z'),
-      driver_id: 'sup-002', // tio
-      helper_id: 'sup-001', // wawan
-      vehicle_plate: 'B 1237 ZN',
-      invoices: {
-        create: [
-          { invoice_no: 'ami-0002' },
-          { invoice_no: 'ami-0003' },
-          { invoice_no: 'ami-0004' },
-          { invoice_no: 'ami-0005' },
-        ],
-      },
-    },
-  })
+  // SEED TRANSACTIONS (1 MONTH SIMULATION)
+  const today = new Date()
+  today.setHours(12, 0, 0, 0) // Normalize to midday
 
-  // TR-004
-  await prisma.transaction.upsert({
-    where: { transaction_no: 'TR-004' },
-    update: {},
-    create: {
-      transaction_no: 'TR-004',
-      transaction_date: new Date('2026-08-24T00:00:00.000Z'),
-      driver_id: 'sup-003', // hasan
-      helper_id: 'sup-004', // ubai
-      vehicle_plate: 'B 1234 ZN',
-      invoices: {
-        create: [
-          { invoice_no: 'ami-0021' },
-          { invoice_no: 'ami-0022' },
-          { invoice_no: 'ami-0023' },
-          { invoice_no: 'ami-0024' },
-          { invoice_no: 'ami-0025' },
-          { invoice_no: 'ami-0026' },
-        ],
-      },
-    },
-  })
+  for (let i = 0; i < 30; i++) {
+    const txDate = new Date(today)
+    txDate.setDate(txDate.getDate() - i)
+    
+    // Create 1 or 2 transactions per day
+    const numTransactions = Math.floor(Math.random() * 2) + 1
+    
+    for (let j = 0; j < numTransactions; j++) {
+      const txNum = `TR-${txDate.getFullYear()}${(txDate.getMonth()+1).toString().padStart(2,'0')}${txDate.getDate().toString().padStart(2,'0')}-${j+1}`
+      
+      // Random driver/helper/vehicle
+      const driver = ['sup-001', 'sup-002', 'sup-003'][Math.floor(Math.random() * 3)]
+      const helper = ['sup-001', 'sup-002', 'sup-004'][Math.floor(Math.random() * 3)]
+      const vehicle = ['B 1234 ZN', 'B 1235 ZN', 'B 1236 ZN', 'B 1237 ZN'][Math.floor(Math.random() * 4)]
 
-  // TR-005 (Tracking Demo: Jakarta - Tasikmalaya)
-  const jktTskTx = await prisma.transaction.upsert({
-    where: { transaction_no: 'TR-005' },
-    update: {},
-    create: {
-      transaction_no: 'TR-005',
-      transaction_date: new Date(),
-      driver_id: 'sup-001', // wawan
-      helper_id: 'sup-002', // tio
-      vehicle_plate: 'B 1234 ZN',
-      invoices: {
-        create: [
-          { invoice_no: 'INV-JKT-TSK-001', status: 'IN_TRANSIT' },
-        ],
-      },
-    },
-  })
-
-  // Add Tracking History for INV-JKT-TSK-001
-  const invoice = await prisma.transactionInvoice.findUnique({
-    where: { invoice_no: 'INV-JKT-TSK-001' }
-  })
-
-  if (invoice) {
-    // Avoid duplicating history if already seeded
-    const existingHistory = await prisma.trackingHistory.findFirst({
-      where: { invoice_id: invoice.id }
-    })
-
-    if (!existingHistory) {
-      await prisma.trackingHistory.createMany({
-        data: [
-          {
-            invoice_id: invoice.id,
-            status: 'PENDING',
-            location: 'Gudang Jakarta Pusat',
-            description: 'Barang diterima dan diproses di gudang pengirim',
-            updated_by: 'Admin Jakarta',
-            lat: -6.1751,
-            lng: 106.8272,
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-          },
-          {
-            invoice_id: invoice.id,
-            status: 'IN_TRANSIT',
-            location: 'Rest Area KM 57 Tol Japek',
-            description: 'Barang dalam perjalanan menuju Bandung',
-            updated_by: 'Driver Wawan',
-            lat: -6.3813,
-            lng: 107.3626,
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
-          },
-          {
-            invoice_id: invoice.id,
-            status: 'IN_TRANSIT',
-            location: 'Gudang Sortir Bandung',
-            description: 'Barang sedang transit di Bandung, menunggu jadwal ke Tasikmalaya',
-            updated_by: 'Admin Bandung',
-            lat: -6.9175,
-            lng: 107.6191,
-            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-          }
-        ]
+      // Create transaction
+      const transaction = await prisma.transaction.upsert({
+        where: { transaction_no: txNum },
+        update: {},
+        create: {
+          transaction_no: txNum,
+          transaction_date: txDate,
+          driver_id: driver,
+          helper_id: helper,
+          vehicle_plate: vehicle,
+        }
       })
+
+      // Create random number of invoices (1 to 5)
+      const numInvoices = Math.floor(Math.random() * 5) + 1
+      for (let k = 0; k < numInvoices; k++) {
+        const invNum = `INV-${txDate.getFullYear().toString().slice(-2)}${(txDate.getMonth()+1).toString().padStart(2,'0')}${txDate.getDate().toString().padStart(2,'0')}-${txNum.slice(-1)}-${k+1}`
+        
+        const invoice = await prisma.transactionInvoice.upsert({
+          where: { invoice_no: invNum },
+          update: {},
+          create: {
+            transaction_no: transaction.transaction_no,
+            invoice_no: invNum,
+            status: i === 0 ? 'PENDING' : 'DELIVERED', // Today's are pending, past are delivered
+          }
+        })
+
+        // Check if history exists
+        const existingHistory = await prisma.trackingHistory.findFirst({ where: { invoice_id: invoice.id } })
+        if (!existingHistory) {
+          // Add dummy tracking history based on status
+          if (i === 0) {
+            await prisma.trackingHistory.create({
+              data: {
+                invoice_id: invoice.id,
+                status: 'PENDING',
+                location: 'Gudang Pusat',
+                updated_by: 'Admin',
+                timestamp: txDate
+              }
+            })
+          } else {
+            await prisma.trackingHistory.create({
+              data: {
+                invoice_id: invoice.id,
+                status: 'PENDING',
+                location: 'Gudang Pusat',
+                updated_by: 'Admin',
+                timestamp: new Date(txDate.getTime() - 1000 * 60 * 60 * 24)
+              }
+            })
+            await prisma.trackingHistory.create({
+              data: {
+                invoice_id: invoice.id,
+                status: 'DELIVERED',
+                location: 'Lokasi Tujuan',
+                updated_by: 'Driver',
+                timestamp: txDate
+              }
+            })
+          }
+        }
+      }
     }
   }
 

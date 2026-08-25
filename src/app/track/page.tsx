@@ -129,7 +129,7 @@ export default function TrackPage() {
                 </div>
 
                 {latestCoords && (
-                  <div className="mb-8 rounded-xl overflow-hidden border shadow-inner h-[250px] relative">
+                  <div className="mb-8 rounded-xl overflow-hidden border shadow-inner h-62.5 relative">
                     <Map height={250} defaultCenter={[latestCoords.lat, latestCoords.lng]} defaultZoom={13}>
                       <Marker width={50} anchor={[latestCoords.lat, latestCoords.lng]} color="#f97316" />
                     </Map>

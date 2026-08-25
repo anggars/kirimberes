@@ -84,7 +84,7 @@ export function TrackingModal({ invoice_no }: { invoice_no: string }) {
         ) : (
           <div className="space-y-6 mt-4">
             {latestCoords ? (
-              <div className="rounded-xl overflow-hidden border shadow-inner h-[200px] relative">
+              <div className="rounded-xl overflow-hidden border shadow-inner h-50 relative">
                 <Map height={200} defaultCenter={[latestCoords.lat, latestCoords.lng]} defaultZoom={13}>
                   <Marker width={50} anchor={[latestCoords.lat, latestCoords.lng]} color="#f97316" />
                 </Map>

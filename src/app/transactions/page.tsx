@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { PlusCircle, FileText, Truck, Users } from "lucide-react"
+import { PlusCircle, FileText, Truck, Users, X } from "lucide-react"
 import Link from "next/link"
 import { DeleteTransactionButton } from "@/components/delete-transaction-button"
 import { ExportExcelButton } from "@/components/export-excel-button"
@@ -20,11 +20,22 @@ import { PrintQRButton } from "@/components/print-qr-button"
 import { TrackingModal } from "@/components/tracking-modal"
 import { getSession } from "@/lib/session"
 
-export default async function TransactionsPage() {
+export default async function TransactionsPage(props: { searchParams: Promise<{ date?: string }> }) {
+  const searchParams = await props.searchParams
+  const dateFilter = searchParams?.date
+  
   const session = await getSession()
   const isAdmin = session?.role === "ADMIN"
 
+  const whereClause = dateFilter ? {
+    transaction_date: {
+      gte: new Date(`${dateFilter}T00:00:00.000Z`),
+      lte: new Date(`${dateFilter}T23:59:59.999Z`),
+    }
+  } : {}
+
   const transactions = await prisma.transaction.findMany({
+    where: whereClause,
     orderBy: { transaction_date: 'desc' },
     include: {
       driver: true,
@@ -43,7 +54,24 @@ export default async function TransactionsPage() {
             Data transaksi logistik dan pengiriman kargo.
           </p>
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <form method="GET" action="/transactions" className="flex items-center gap-2 w-full sm:w-auto bg-background border rounded-md px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-primary">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">Filter:</span>
+            <input 
+              type="date" 
+              name="date" 
+              defaultValue={dateFilter} 
+              className="bg-transparent text-sm outline-none w-full sm:w-auto"
+              onChange={(e) => e.target.form?.submit()}
+            />
+            {dateFilter && (
+              <Link href="/transactions">
+                <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full ml-1" type="button">
+                  <X className="h-3 w-3" />
+                </Button>
+              </Link>
+            )}
+          </form>
           <ExportExcelButton transactions={transactions} />
           <Link href="/transactions/new" className="flex-1 sm:flex-none">
             <Button className="w-full shadow-md shadow-primary/20">
