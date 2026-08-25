@@ -56,7 +56,7 @@ export function TrackingModal({ invoice_no }: { invoice_no: string }) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         <Badge variant="outline" className="bg-background flex items-center gap-1 font-normal text-xs border-primary/30 cursor-pointer hover:bg-primary/10 transition-colors">
           <FileText className="h-3 w-3 text-primary" />
           {invoice_no}
