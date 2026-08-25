@@ -20,8 +20,8 @@ import { PrintQRButton } from "@/components/print-qr-button"
 import { TrackingModal } from "@/components/tracking-modal"
 import { getSession } from "@/lib/session"
 
-export default async function TransactionsPage(props: { searchParams?: Promise<{ [key: string]: string | string[] | undefined }> }) {
-  const searchParams = props.searchParams ? await props.searchParams : {}
+export default async function TransactionsPage(props: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const searchParams = await props.searchParams
   const dateParam = searchParams?.date
   const dateFilter = typeof dateParam === 'string' ? dateParam : undefined
   
@@ -41,16 +41,32 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
     }
   }
 
-  const transactions = await prisma.transaction.findMany({
-    where: whereClause,
-    orderBy: { transaction_date: 'desc' },
-    include: {
-      driver: true,
-      helper: true,
-      vehicle: true,
-      invoices: true,
-    }
-  })
+  let transactions: any[] = []
+  let errorMsg = null
+
+  try {
+    transactions = await prisma.transaction.findMany({
+      where: whereClause,
+      orderBy: { transaction_date: 'desc' },
+      include: {
+        driver: true,
+        helper: true,
+        vehicle: true,
+        invoices: true,
+      }
+    })
+  } catch (err: any) {
+    errorMsg = err?.message || String(err)
+  }
+
+  if (errorMsg) {
+    return (
+      <div className="p-8 text-red-500 font-mono">
+        <h1 className="text-xl font-bold mb-4">Server Error Detailed</h1>
+        <p>{errorMsg}</p>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -138,7 +154,7 @@ export default async function TransactionsPage(props: { searchParams?: Promise<{
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1.5 max-w-62.5">
-                        {tx.invoices.map((inv) => (
+                        {tx.invoices.map((inv: any) => (
                           <div key={inv.id} className="flex items-center gap-1">
                             <TrackingModal invoice_no={inv.invoice_no} />
                             <PrintQRButton invoice_no={inv.invoice_no} />
