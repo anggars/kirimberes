@@ -20,19 +20,26 @@ import { PrintQRButton } from "@/components/print-qr-button"
 import { TrackingModal } from "@/components/tracking-modal"
 import { getSession } from "@/lib/session"
 
-export default async function TransactionsPage(props: { searchParams: Promise<{ date?: string }> }) {
-  const searchParams = await props.searchParams
-  const dateFilter = searchParams?.date
+export default async function TransactionsPage(props: { searchParams?: Promise<{ [key: string]: string | string[] | undefined }> }) {
+  const searchParams = props.searchParams ? await props.searchParams : {}
+  const dateParam = searchParams?.date
+  const dateFilter = typeof dateParam === 'string' ? dateParam : undefined
   
   const session = await getSession()
   const isAdmin = session?.role === "ADMIN"
 
-  const whereClause = dateFilter ? {
-    transaction_date: {
-      gte: new Date(`${dateFilter}T00:00:00.000Z`),
-      lte: new Date(`${dateFilter}T23:59:59.999Z`),
+  let whereClause = {}
+  if (dateFilter) {
+    const dateObj = new Date(dateFilter)
+    if (!isNaN(dateObj.getTime())) {
+      whereClause = {
+        transaction_date: {
+          gte: new Date(`${dateFilter}T00:00:00.000Z`),
+          lte: new Date(`${dateFilter}T23:59:59.999Z`),
+        }
+      }
     }
-  } : {}
+  }
 
   const transactions = await prisma.transaction.findMany({
     where: whereClause,
@@ -72,7 +79,7 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
               </Link>
             )}
           </form>
-          <ExportExcelButton transactions={transactions} />
+          <ExportExcelButton transactions={JSON.parse(JSON.stringify(transactions))} />
           <Link href="/transactions/new" className="flex-1 sm:flex-none">
             <Button className="w-full shadow-md shadow-primary/20">
               <PlusCircle className="mr-2 h-4 w-4" />
