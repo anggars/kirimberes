@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Crew {
+  id      String @id
+  name    String
+  gender  String
+  address String
+
+  driverTransactions Transaction[] @relation("DriverRelation")
+  helperTransactions Transaction[] @relation("HelperRelation")
+}
+
+model Vehicle {
+  plate_number String @id
+  vehicle_name String
+  brand        String
+
+  transactions Transaction[]
+}
+
+model Transaction {
+  transaction_no   String   @id
+  transaction_date DateTime
+
+  driver_id String
+  driver    Crew   @relation("DriverRelation", fields: [driver_id], references: [id])
+
+  helper_id String
+  helper    Crew   @relation("HelperRelation", fields: [helper_id], references: [id])
+
+  vehicle_plate String
+  vehicle       Vehicle @relation(fields: [vehicle_plate], references: [plate_number])
+
+  invoices TransactionInvoice[]
+}
+
+model TransactionInvoice {
+  id             Int         @id @default(autoincrement())
+  transaction_no String
+  transaction    Transaction @relation(fields: [transaction_no], references: [transaction_no])
+  invoice_no     String
+}
