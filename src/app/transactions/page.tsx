@@ -8,6 +8,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
+import { TransactionFilters } from "@/components/transaction-filters"
+
 export const dynamic = 'force-dynamic'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -25,20 +27,64 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
   const dateParam = searchParams?.date
   const dateFilter = typeof dateParam === 'string' ? dateParam : undefined
   
+  const driverParam = searchParams?.driver
+  const driverFilter = typeof driverParam === 'string' ? driverParam : undefined
+
+  const vehicleParam = searchParams?.vehicle
+  const vehicleFilter = typeof vehicleParam === 'string' ? vehicleParam : undefined
+
+  const invoiceParam = searchParams?.invoice
+  const invoiceFilter = typeof invoiceParam === 'string' ? invoiceParam : undefined
+
   const session = await getSession()
   const isAdmin = session?.role === "ADMIN"
 
-  let whereClause = {}
+  let whereClause: any = {}
+  const conditions: any[] = []
+
   if (dateFilter) {
     const dateObj = new Date(dateFilter)
     if (!isNaN(dateObj.getTime())) {
-      whereClause = {
+      conditions.push({
         transaction_date: {
           gte: new Date(`${dateFilter}T00:00:00.000Z`),
           lte: new Date(`${dateFilter}T23:59:59.999Z`),
         }
-      }
+      })
     }
+  }
+
+  if (driverFilter) {
+    conditions.push({
+      driver: {
+        name: { contains: driverFilter, mode: 'insensitive' }
+      }
+    })
+  }
+
+  if (vehicleFilter) {
+    conditions.push({
+      vehicle: {
+        OR: [
+          { plate_number: { contains: vehicleFilter, mode: 'insensitive' } },
+          { vehicle_name: { contains: vehicleFilter, mode: 'insensitive' } },
+        ]
+      }
+    })
+  }
+
+  if (invoiceFilter) {
+    conditions.push({
+      invoices: {
+        some: {
+          invoice_no: { contains: invoiceFilter, mode: 'insensitive' }
+        }
+      }
+    })
+  }
+
+  if (conditions.length > 0) {
+    whereClause = { AND: conditions }
   }
 
   let transactions: any[] = []
@@ -78,25 +124,6 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-          <form method="GET" action="/transactions" className="flex items-center gap-2 w-full sm:w-auto bg-background border rounded-md px-3 py-2 shadow-sm focus-within:ring-1 focus-within:ring-primary">
-            <span className="text-sm text-muted-foreground whitespace-nowrap">Filter:</span>
-            <input 
-              type="date" 
-              name="date" 
-              defaultValue={dateFilter} 
-              className="bg-transparent text-sm outline-none w-full sm:w-auto"
-            />
-            <Button variant="ghost" size="sm" className="h-6 text-xs px-2" type="submit">
-              Cari
-            </Button>
-            {dateFilter && (
-              <Link href="/transactions">
-                <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full ml-1" type="button">
-                  <X className="h-3 w-3" />
-                </Button>
-              </Link>
-            )}
-          </form>
           <ExportExcelButton transactions={JSON.parse(JSON.stringify(transactions))} />
           <Link href="/transactions/new" className="flex-1 sm:flex-none">
             <Button className="w-full shadow-md shadow-primary/20">
@@ -106,6 +133,8 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
           </Link>
         </div>
       </div>
+      
+      <TransactionFilters />
 
       <Card>
         <CardHeader>
