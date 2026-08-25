@@ -5,39 +5,48 @@ import { Download } from "lucide-react"
 import * as XLSX from 'xlsx'
 
 export function ExportExcelButton({ transactions }: { transactions: any[] }) {
-  const handleExportSplit = () => {
-    const maxInvoices = Math.max(...transactions.map(tx => tx.invoices.length), 0)
+  const handleExportRows = () => {
+    const excelData: any[] = []
 
-    const excelData = transactions.map((tx) => {
-      const rowData: any = {
-        "No Transaksi": tx.transaction_no,
-        "Tanggal": new Date(tx.transaction_date).toLocaleDateString('id-ID'),
-        "Supir": tx.driver.name,
-        "Kenek": tx.helper.name,
-        "Plat Nomor": tx.vehicle.plate_number,
-        "Kendaraan": tx.vehicle.vehicle_name,
-        "Total Invoice": tx.invoices.length,
+    transactions.forEach((tx) => {
+      if (tx.invoices.length === 0) {
+        excelData.push({
+          "No Transaksi": tx.transaction_no,
+          "Tanggal": new Date(tx.transaction_date).toLocaleDateString('id-ID'),
+          "Supir": tx.driver.name,
+          "Kenek": tx.helper.name,
+          "Plat Nomor": tx.vehicle.plate_number,
+          "Kendaraan": tx.vehicle.vehicle_name,
+          "Total Invoice": 0,
+          "Daftar Invoice": ""
+        })
+        return
       }
 
-      for (let i = 0; i < maxInvoices; i++) {
-        rowData[`Invoice ${i + 1}`] = tx.invoices[i] ? tx.invoices[i].invoice_no : ""
-      }
-
-      return rowData
+      tx.invoices.forEach((inv: any, index: number) => {
+        excelData.push({
+          "No Transaksi": tx.transaction_no,
+          "Tanggal": new Date(tx.transaction_date).toLocaleDateString('id-ID'),
+          "Supir": tx.driver.name,
+          "Kenek": tx.helper.name,
+          "Plat Nomor": tx.vehicle.plate_number,
+          "Kendaraan": tx.vehicle.vehicle_name,
+          "Total Invoice": index === 0 ? tx.invoices.length : "",
+          "Daftar Invoice": inv.invoice_no
+        })
+      })
     })
 
     const wb = XLSX.utils.book_new()
     const ws = XLSX.utils.json_to_sheet(excelData)
 
-    const colWidths = [
+    ws['!cols'] = [
       { wch: 20 }, { wch: 12 }, { wch: 15 }, { wch: 15 }, 
-      { wch: 12 }, { wch: 15 }, { wch: 15 }
+      { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 25 }
     ]
-    for (let i = 0; i < maxInvoices; i++) colWidths.push({ wch: 25 })
     
-    ws['!cols'] = colWidths
     XLSX.utils.book_append_sheet(wb, ws, "Laporan Transaksi")
-    XLSX.writeFile(wb, `Laporan_Manifest_Mendatar_${new Date().toISOString().split('T')[0]}.xlsx`)
+    XLSX.writeFile(wb, `Laporan_Manifest_Per_Baris_${new Date().toISOString().split('T')[0]}.xlsx`)
   }
 
   const handleExportCombined = () => {
@@ -65,9 +74,9 @@ export function ExportExcelButton({ transactions }: { transactions: any[] }) {
 
   return (
     <div className="flex flex-col sm:flex-row gap-2">
-      <Button variant="outline" className="shadow-sm" onClick={handleExportSplit}>
+      <Button variant="outline" className="shadow-sm" onClick={handleExportRows}>
         <Download className="mr-2 h-4 w-4" />
-        Excel (Mendatar)
+        Excel (Per Baris)
       </Button>
       <Button variant="outline" className="shadow-sm" onClick={handleExportCombined}>
         <Download className="mr-2 h-4 w-4" />
