@@ -1,6 +1,8 @@
 import prisma from "@/lib/prisma"
 import { TransactionsForm } from "../../../components/transactions-form"
 
+export const dynamic = 'force-dynamic'
+
 export default async function NewTransactionPage() {
   const crews = await prisma.crew.findMany({ orderBy: { name: 'asc' } })
   const vehicles = await prisma.vehicle.findMany({ orderBy: { plate_number: 'asc' } })
