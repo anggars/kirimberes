@@ -6,17 +6,28 @@ import * as XLSX from 'xlsx'
 
 export function ExportExcelButton({ transactions }: { transactions: any[] }) {
   const handleExport = () => {
+    // Find maximum number of invoices in any transaction to create dynamic columns
+    const maxInvoices = Math.max(...transactions.map(tx => tx.invoices.length), 0)
+
     // Format data for excel
-    const excelData = transactions.map((tx) => ({
-      "No Transaksi": tx.transaction_no,
-      "Tanggal": new Date(tx.transaction_date).toLocaleDateString('id-ID'),
-      "Supir": tx.driver.name,
-      "Kenek": tx.helper.name,
-      "Plat Nomor": tx.vehicle.plate_number,
-      "Kendaraan": tx.vehicle.vehicle_name,
-      "Total Invoice": tx.invoices.length,
-      "Daftar Invoice": tx.invoices.map((inv: any) => inv.invoice_no).join(", ")
-    }))
+    const excelData = transactions.map((tx) => {
+      const rowData: any = {
+        "No Transaksi": tx.transaction_no,
+        "Tanggal": new Date(tx.transaction_date).toLocaleDateString('id-ID'),
+        "Supir": tx.driver.name,
+        "Kenek": tx.helper.name,
+        "Plat Nomor": tx.vehicle.plate_number,
+        "Kendaraan": tx.vehicle.vehicle_name,
+        "Total Invoice": tx.invoices.length,
+      }
+
+      // Add each invoice in its own column
+      for (let i = 0; i < maxInvoices; i++) {
+        rowData[`Invoice ${i + 1}`] = tx.invoices[i] ? tx.invoices[i].invoice_no : ""
+      }
+
+      return rowData
+    })
 
     // Create a new workbook
     const wb = XLSX.utils.book_new()
@@ -31,8 +42,13 @@ export function ExportExcelButton({ transactions }: { transactions: any[] }) {
       { wch: 12 }, // Plat
       { wch: 15 }, // Kendaraan
       { wch: 15 }, // Total Invoice
-      { wch: 50 }, // Daftar Invoice
     ]
+    
+    // Add widths for dynamic invoice columns
+    for (let i = 0; i < maxInvoices; i++) {
+      colWidths.push({ wch: 25 })
+    }
+    
     ws['!cols'] = colWidths
 
     // Add worksheet to workbook
