@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Search, MapPin, Package, CheckCircle2, Truck, Clock } from "lucide-react"
+import { Map, Marker } from "pigeon-maps"
 
 export default function TrackPage() {
   const [resi, setResi] = useState("")
@@ -48,6 +49,10 @@ export default function TrackPage() {
       default: return status
     }
   }
+
+  // Find the most recent tracking history entry that has lat & lng
+  const latestLocation = data?.trackingHistory?.find((h: any) => h.lat && h.lng)
+  const latestCoords = latestLocation ? { lat: latestLocation.lat, lng: latestLocation.lng } : null
 
   return (
     <div className="min-h-screen bg-muted/30 p-4 md:p-8">
@@ -122,6 +127,17 @@ export default function TrackPage() {
                     </p>
                   </div>
                 </div>
+
+                {latestCoords && (
+                  <div className="mb-8 rounded-xl overflow-hidden border shadow-inner h-[250px] relative">
+                    <Map height={250} defaultCenter={[latestCoords.lat, latestCoords.lng]} defaultZoom={13}>
+                      <Marker width={50} anchor={[latestCoords.lat, latestCoords.lng]} color="#f97316" />
+                    </Map>
+                    <div className="absolute top-2 right-2 bg-background/90 backdrop-blur text-xs px-2 py-1 rounded shadow text-foreground font-medium flex items-center gap-1 border">
+                      <MapPin className="h-3 w-3 text-primary" /> Posisi Terakhir
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-linear-to-b before:from-transparent before:via-border before:to-transparent">
                   {data.trackingHistory.length === 0 ? (

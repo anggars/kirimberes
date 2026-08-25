@@ -67,5 +67,7 @@ model TrackingHistory {
   location    String?
   description String?
   updated_by  String
+  lat         Float?
+  lng         Float?
   timestamp   DateTime @default(now())
 }

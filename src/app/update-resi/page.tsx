@@ -1,17 +1,40 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { updateTrackingStatus } from "@/app/actions/tracking"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { ScanBarcode, MapPin, CheckCircle2 } from "lucide-react"
+import { ScanBarcode, MapPin, CheckCircle2, Navigation } from "lucide-react"
 
 export default function UpdateResiPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [gpsLoading, setGpsLoading] = useState(true)
+  const [coords, setCoords] = useState<{lat: number, lng: number} | null>(null)
+
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCoords({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          })
+          setGpsLoading(false)
+        },
+        (error) => {
+          console.warn("GPS Location access denied or unavailable", error)
+          setGpsLoading(false)
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      )
+    } else {
+      setGpsLoading(false)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -118,13 +141,35 @@ export default function UpdateResiPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Keterangan / Catatan (Opsional)</label>
+              <label className="text-sm font-medium flex items-center justify-between">
+                <span>Keterangan / Catatan (Opsional)</span>
+                {gpsLoading ? (
+                  <span className="text-xs text-muted-foreground animate-pulse flex items-center gap-1">
+                    <Navigation className="h-3 w-3 animate-spin" /> Mengambil lokasi GPS...
+                  </span>
+                ) : coords ? (
+                  <span className="text-xs text-green-600 flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" /> GPS Aktif
+                  </span>
+                ) : (
+                  <span className="text-xs text-destructive flex items-center gap-1">
+                    <MapPin className="h-3 w-3" /> GPS Mati
+                  </span>
+                )}
+              </label>
               <Textarea
                 name="description"
                 placeholder="Misal: Barang diturunkan di gudang sortir"
                 rows={3}
               />
             </div>
+            
+            {coords && (
+              <>
+                <input type="hidden" name="lat" value={coords.lat} />
+                <input type="hidden" name="lng" value={coords.lng} />
+              </>
+            )}
 
             <Button type="submit" className="w-full" size="lg" disabled={loading}>
               {loading ? "Menyimpan..." : "Update Status"}

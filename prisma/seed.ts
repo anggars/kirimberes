@@ -149,6 +149,8 @@ async function main() {
             location: 'Gudang Jakarta Pusat',
             description: 'Barang diterima dan diproses di gudang pengirim',
             updated_by: 'Admin Jakarta',
+            lat: -6.1751,
+            lng: 106.8272,
             timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
           },
           {
@@ -157,6 +159,8 @@ async function main() {
             location: 'Rest Area KM 57 Tol Japek',
             description: 'Barang dalam perjalanan menuju Bandung',
             updated_by: 'Driver Wawan',
+            lat: -6.3813,
+            lng: 107.3626,
             timestamp: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
           },
           {
@@ -165,6 +169,8 @@ async function main() {
             location: 'Gudang Sortir Bandung',
             description: 'Barang sedang transit di Bandung, menunggu jadwal ke Tasikmalaya',
             updated_by: 'Admin Bandung',
+            lat: -6.9175,
+            lng: 107.6191,
             timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
           }
         ]

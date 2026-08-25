@@ -64,6 +64,8 @@ export async function updateTrackingStatus(formData: FormData) {
         location: location || null,
         description: description || null,
         updated_by: session.name || session.username,
+        lat: formData.get("lat") ? parseFloat(formData.get("lat") as string) : null,
+        lng: formData.get("lng") ? parseFloat(formData.get("lng") as string) : null,
       }
     })
 
