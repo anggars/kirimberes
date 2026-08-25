@@ -85,8 +85,10 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
               name="date" 
               defaultValue={dateFilter} 
               className="bg-transparent text-sm outline-none w-full sm:w-auto"
-              onChange={(e) => e.target.form?.submit()}
             />
+            <Button variant="ghost" size="sm" className="h-6 text-xs px-2" type="submit">
+              Cari
+            </Button>
             {dateFilter && (
               <Link href="/transactions">
                 <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full ml-1" type="button">
