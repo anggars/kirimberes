@@ -73,11 +73,10 @@ export function CrewsClient({ initialCrews }: { initialCrews: Crew[] }) {
           setIsOpen(open)
           if (!open) resetForm()
         }}>
-          <DialogTrigger asChild>
-            <Button className="shadow-md">
+          <DialogTrigger render={<Button className="shadow-md">
               <PlusCircle className="mr-2 h-4 w-4" />
               Tambah Crew
-            </Button>
+            </Button>}>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
