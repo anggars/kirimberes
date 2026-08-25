@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Truck, Users, LayoutDashboard, Moon, Sun, Menu, LogOut } from "lucide-react"
+import { Truck, Users, LayoutDashboard, Moon, Sun, Menu, LogOut, ScanBarcode } from "lucide-react"
 import { useTheme } from "next-themes"
 import { logout } from "@/app/actions/auth"
 
@@ -32,6 +32,7 @@ export function LayoutWrapper({
   const allNavItems = [
     { href: "/", label: "Beranda", icon: LayoutDashboard, adminOnly: true },
     { href: "/transactions", label: "Manifest Pengiriman", icon: Truck, adminOnly: false },
+    { href: "/update-resi", label: "Update Status Resi", icon: ScanBarcode, adminOnly: false },
     { href: "/crews", label: "Data Supir & Kenek", icon: Users, adminOnly: true },
     { href: "/vehicles", label: "Data Kendaraan", icon: Truck, adminOnly: true },
   ]

@@ -111,6 +111,67 @@ async function main() {
     },
   })
 
+  // TR-005 (Tracking Demo: Jakarta - Tasikmalaya)
+  const jktTskTx = await prisma.transaction.upsert({
+    where: { transaction_no: 'TR-005' },
+    update: {},
+    create: {
+      transaction_no: 'TR-005',
+      transaction_date: new Date(),
+      driver_id: 'sup-001', // wawan
+      helper_id: 'sup-002', // tio
+      vehicle_plate: 'B 1234 ZN',
+      invoices: {
+        create: [
+          { invoice_no: 'INV-JKT-TSK-001', status: 'IN_TRANSIT' },
+        ],
+      },
+    },
+  })
+
+  // Add Tracking History for INV-JKT-TSK-001
+  const invoice = await prisma.transactionInvoice.findUnique({
+    where: { invoice_no: 'INV-JKT-TSK-001' }
+  })
+
+  if (invoice) {
+    // Avoid duplicating history if already seeded
+    const existingHistory = await prisma.trackingHistory.findFirst({
+      where: { invoice_id: invoice.id }
+    })
+
+    if (!existingHistory) {
+      await prisma.trackingHistory.createMany({
+        data: [
+          {
+            invoice_id: invoice.id,
+            status: 'PENDING',
+            location: 'Gudang Jakarta Pusat',
+            description: 'Barang diterima dan diproses di gudang pengirim',
+            updated_by: 'Admin Jakarta',
+            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
+          },
+          {
+            invoice_id: invoice.id,
+            status: 'IN_TRANSIT',
+            location: 'Rest Area KM 57 Tol Japek',
+            description: 'Barang dalam perjalanan menuju Bandung',
+            updated_by: 'Driver Wawan',
+            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12 hours ago
+          },
+          {
+            invoice_id: invoice.id,
+            status: 'IN_TRANSIT',
+            location: 'Gudang Sortir Bandung',
+            description: 'Barang sedang transit di Bandung, menunggu jadwal ke Tasikmalaya',
+            updated_by: 'Admin Bandung',
+            timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
+          }
+        ]
+      })
+    }
+  }
+
   console.log('Transactions & Invoices seeded.')
   console.log('Seeding completed!')
 }

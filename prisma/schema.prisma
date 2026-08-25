@@ -52,6 +52,20 @@ model Transaction {
 model TransactionInvoice {
   id             Int         @id @default(autoincrement())
   transaction_no String
-  transaction    Transaction @relation(fields: [transaction_no], references: [transaction_no])
-  invoice_no     String
+  transaction    Transaction @relation(fields: [transaction_no], references: [transaction_no], onDelete: Cascade)
+  invoice_no     String      @unique
+  status         String      @default("PENDING") // PENDING, IN_TRANSIT, DELIVERED, CANCELLED
+
+  trackingHistory TrackingHistory[]
+}
+
+model TrackingHistory {
+  id          Int      @id @default(autoincrement())
+  invoice_id  Int
+  invoice     TransactionInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  status      String
+  location    String?
+  description String?
+  updated_by  String
+  timestamp   DateTime @default(now())
 }

@@ -16,6 +16,7 @@ import { PlusCircle, FileText, Truck, Users } from "lucide-react"
 import Link from "next/link"
 import { DeleteTransactionButton } from "@/components/delete-transaction-button"
 import { ExportExcelButton } from "@/components/export-excel-button"
+import { PrintQRButton } from "@/components/print-qr-button"
 import { getSession } from "@/lib/session"
 
 export default async function TransactionsPage() {
@@ -102,10 +103,13 @@ export default async function TransactionsPage() {
                     <TableCell>
                       <div className="flex flex-wrap gap-1.5 max-w-62.5">
                         {tx.invoices.map((inv) => (
-                          <Badge key={inv.id} variant="outline" className="bg-background flex items-center gap-1 font-normal text-xs border-primary/30">
-                            <FileText className="h-3 w-3 text-primary" />
-                            {inv.invoice_no}
-                          </Badge>
+                          <div key={inv.id} className="flex items-center gap-1">
+                            <Badge variant="outline" className="bg-background flex items-center gap-1 font-normal text-xs border-primary/30">
+                              <FileText className="h-3 w-3 text-primary" />
+                              {inv.invoice_no}
+                            </Badge>
+                            <PrintQRButton invoice_no={inv.invoice_no} />
+                          </div>
                         ))}
                       </div>
                     </TableCell>
