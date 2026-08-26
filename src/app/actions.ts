@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import bcrypt from "bcryptjs"
 
 // --- CREW ACTIONS ---
 
@@ -51,6 +52,9 @@ export async function createTransaction(data: {
   vehicle_plate: string
   invoices: string[] // Array of invoice_no
 }) {
+  const { getSession } = await import("@/lib/session")
+  const session = await getSession()
+  
   await prisma.transaction.create({
     data: {
       transaction_no: data.transaction_no,
@@ -58,6 +62,7 @@ export async function createTransaction(data: {
       driver_id: data.driver_id,
       helper_id: data.helper_id,
       vehicle_plate: data.vehicle_plate,
+      created_by: session?.id,
       invoices: {
         create: data.invoices.map((inv) => ({ invoice_no: inv })),
       },
@@ -77,4 +82,43 @@ export async function deleteTransaction(transaction_no: string) {
   })
   revalidatePath("/transactions")
   revalidatePath("/")
+}
+
+// --- USER ACTIONS (SUPER_USER ONLY) ---
+
+export async function createUser(data: { username: string; password?: string; name: string; role: string }) {
+  const hashedPassword = data.password ? await bcrypt.hash(data.password, 10) : await bcrypt.hash("123456", 10)
+  
+  await prisma.user.create({
+    data: {
+      username: data.username,
+      password: hashedPassword,
+      name: data.name,
+      role: data.role,
+    }
+  })
+  revalidatePath("/users")
+}
+
+export async function updateUser(id: string, data: { username: string; password?: string; name: string; role: string }) {
+  const updateData: any = {
+    username: data.username,
+    name: data.name,
+    role: data.role,
+  }
+  
+  if (data.password) {
+    updateData.password = await bcrypt.hash(data.password, 10)
+  }
+
+  await prisma.user.update({
+    where: { id },
+    data: updateData
+  })
+  revalidatePath("/users")
+}
+
+export async function deleteUser(id: string) {
+  await prisma.user.delete({ where: { id } })
+  revalidatePath("/users")
 }

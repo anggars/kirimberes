@@ -13,6 +13,8 @@ model User {
   password String
   role     String @default("USER") // ADMIN or USER
   name     String?
+
+  transactions Transaction[]
 }
 
 model Crew {
@@ -47,6 +49,9 @@ model Transaction {
   vehicle       Vehicle @relation(fields: [vehicle_plate], references: [plate_number])
 
   invoices TransactionInvoice[]
+
+  created_by     String?
+  createdByUser  User?    @relation(fields: [created_by], references: [id])
 }
 
 model TransactionInvoice {

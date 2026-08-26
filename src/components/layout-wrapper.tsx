@@ -30,16 +30,17 @@ export function LayoutWrapper({
   }
 
   const allNavItems = [
-    { href: "/", label: "Beranda", icon: LayoutDashboard, adminOnly: true },
-    { href: "/transactions", label: "Manifest Pengiriman", icon: Truck, adminOnly: false },
-    { href: "/update-resi", label: "Update Status Resi", icon: ScanBarcode, adminOnly: false },
-    { href: "/crews", label: "Data Supir & Kenek", icon: Users, adminOnly: true },
-    { href: "/vehicles", label: "Data Kendaraan", icon: Truck, adminOnly: true },
+    { href: "/", label: "Beranda", icon: LayoutDashboard, roles: ["ADMIN", "SUPER_USER"] },
+    { href: "/transactions", label: "Manifest Pengiriman", icon: Truck, roles: ["USER", "ADMIN", "SUPER_USER"] },
+    { href: "/update-resi", label: "Update Status Resi", icon: ScanBarcode, roles: ["ADMIN", "SUPER_USER"] },
+    { href: "/crews", label: "Data Supir & Kenek", icon: Users, roles: ["ADMIN", "SUPER_USER"] },
+    { href: "/vehicles", label: "Data Kendaraan", icon: Truck, roles: ["ADMIN", "SUPER_USER"] },
+    { href: "/users", label: "Manajemen Akun", icon: Users, roles: ["SUPER_USER"] },
   ]
 
   const navItems = allNavItems.filter(item => {
-    if (session?.role !== "ADMIN" && item.adminOnly) return false
-    return true
+    if (!session?.role) return false
+    return item.roles.includes(session.role)
   })
 
   return (

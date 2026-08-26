@@ -99,6 +99,7 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
         helper: true,
         vehicle: true,
         invoices: true,
+        createdByUser: true,
       }
     })
   } catch (err: any) {
@@ -149,6 +150,7 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
                   <TableHead>No. Transaksi</TableHead>
                   <TableHead>Tanggal</TableHead>
                   <TableHead>Kru & Kendaraan</TableHead>
+                  <TableHead>Pembuat</TableHead>
                   <TableHead>Invoices</TableHead>
                   {isAdmin && <TableHead className="text-right">Aksi</TableHead>}
                 </TableRow>
@@ -181,6 +183,12 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
                             {tx.vehicle.vehicle_name}
                           </span>
                         </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center text-sm gap-2">
+                        <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="capitalize">{tx.createdByUser?.name || tx.createdByUser?.username || "Sistem"}</span>
                       </div>
                     </TableCell>
                     <TableCell>
