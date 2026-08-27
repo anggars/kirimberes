@@ -58,6 +58,11 @@ export async function fetchAccurateAPI(endpoint: string, method = "GET", body?: 
 export async function openAccurateDatabase(dbId: string) {
   const data = await fetchAccurateAPI(`/api/open-db.do?id=${dbId}`);
   if (data.s === false) {
+    // If the token is already bound to a database session, Accurate will reject open-db.do
+    // with this specific message. We can just use the base host in that case.
+    if (data.d && data.d[0] && typeof data.d[0] === 'string' && data.d[0].includes("termasuk Sesi Database")) {
+      return ACCURATE_HOST;
+    }
     throw new Error("Failed to open Accurate DB: " + JSON.stringify(data.d));
   }
   // The host URL is usually returned in the response
