@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Crew, Vehicle } from "@prisma/client"
 import { Button } from "@/components/ui/button"
@@ -20,8 +20,14 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     driver_id: "",
     helper_id: "",
     vehicle_plate: "",
-    invoices: [{ no: "", status: "idle", data: null as any }] // status: idle, loading, success, error
+    vehicle_plate: "",
+    invoices: [] as { no: string, data: any }[]
   })
+
+  const [currentInput, setCurrentInput] = useState("")
+  const [inputStatus, setInputStatus] = useState<"idle" | "loading" | "error">("idle")
+  const [inputError, setInputError] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // Auto-generate transaction number on mount
   useEffect(() => {
@@ -37,65 +43,49 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     setFormData(prev => ({ ...prev, transaction_no: autoNumber }))
   }, [])
 
-  const handleAddInvoice = () => {
-    setFormData(prev => ({ ...prev, invoices: [...prev.invoices, { no: "", status: "idle", data: null }] }))
-  }
-
   const handleRemoveInvoice = (index: number) => {
     const newInvoices = formData.invoices.filter((_, i) => i !== index)
     setFormData({ ...formData, invoices: newInvoices })
   }
 
-  const handleInvoiceChange = (index: number, value: string) => {
-    const newInvoices = [...formData.invoices]
-    newInvoices[index].no = value
-    newInvoices[index].status = "idle"
-    newInvoices[index].data = null
-    setFormData({ ...formData, invoices: newInvoices })
-  }
-
-  const handleVerifyAccurate = async (index: number) => {
-    const invoiceNo = formData.invoices[index].no.trim();
+  const handleVerifyCurrent = async () => {
+    const invoiceNo = currentInput.trim();
     if (!invoiceNo) return;
     
-    const newInvoices = [...formData.invoices]
-    newInvoices[index].status = "loading"
-    setFormData({ ...formData, invoices: newInvoices })
-
-    const res = await searchSalesInvoice(invoiceNo)
-    
-    const updatedInvoices = [...formData.invoices]
-    if (res.success) {
-      updatedInvoices[index].status = "success"
-      updatedInvoices[index].data = res.data
-    } else {
-      updatedInvoices[index].status = "error"
-      updatedInvoices[index].data = res.error
+    // Check duplicates
+    if (formData.invoices.some(inv => inv.no === invoiceNo)) {
+      setInputStatus("error");
+      setInputError("Faktur sudah ada di dalam daftar!");
+      return;
     }
-    setFormData({ ...formData, invoices: updatedInvoices })
+
+    setInputStatus("loading");
+    setInputError("");
+
+    const res = await searchSalesInvoice(invoiceNo);
+    
+    if (res.success) {
+      setFormData(prev => ({ 
+        ...prev, 
+        invoices: [...prev.invoices, { no: invoiceNo, data: res.data }] 
+      }));
+      setCurrentInput("");
+      setInputStatus("idle");
+    } else {
+      setInputStatus("error");
+      setInputError(res.error || "Gagal verifikasi ke Accurate");
+    }
+    
+    // Keep focus
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 50);
   }
 
-  // Modal removed as per client feedback
-  // Handle barcode scanner 'Enter' keypress
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault() // Prevent form submission
-      
-      // Only add a new row if the current one is not empty
-      if (formData.invoices[index].no.trim() !== "") {
-        // Automatically verify with accurate when pressing enter
-        handleVerifyAccurate(index)
-        
-        handleAddInvoice()
-        
-        // Use timeout to wait for React to render the new input, then focus it
-        setTimeout(() => {
-          const inputs = document.querySelectorAll('.invoice-input')
-          if (inputs.length > index + 1) {
-            ;(inputs[index + 1] as HTMLInputElement).focus()
-          }
-        }, 50)
-      }
+      e.preventDefault();
+      handleVerifyCurrent();
     }
   }
 
@@ -104,19 +94,9 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     setIsSubmitting(true)
     
     try {
-      // Filter out empty invoices
-      const validInvoices = formData.invoices.filter(inv => inv.no.trim() !== "");
+      const validInvoices = formData.invoices;
       if (validInvoices.length === 0) {
         alert("Harap masukkan setidaknya satu nomor invoice.")
-        setIsSubmitting(false)
-        return
-      }
-
-      // Check for duplicates within the form
-      const invoiceNumbers = validInvoices.map(inv => inv.no.trim());
-      const uniqueInvoices = new Set(invoiceNumbers)
-      if (uniqueInvoices.size !== invoiceNumbers.length) {
-        alert("Terdapat nomor invoice ganda (duplikat) di dalam form. Harap periksa kembali.")
         setIsSubmitting(false)
         return
       }
@@ -235,82 +215,87 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
 
           <div className="space-y-4 pt-4 border-t">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-lg">Daftar Invoice / Kargo</h3>
-              </div>
-              <Button type="button" variant="outline" size="sm" onClick={handleAddInvoice}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Tambah Baris
-              </Button>
+              <h3 className="font-semibold text-lg">Daftar Invoice / Kargo</h3>
             </div>
             
-            <div className="space-y-3">
-              {formData.invoices.map((inv, index) => (
-                <div key={index} className="flex flex-col gap-1">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-muted-foreground w-6">{index + 1}.</span>
-                    <Input 
-                      required
-                      autoFocus={index === formData.invoices.length - 1 && index !== 0}
-                      placeholder="Scan Barcode / Ketik Invoice + Enter"
-                      value={inv.no}
-                      onChange={(e) => handleInvoiceChange(index, e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(e, index)}
-                      className="flex-1 invoice-input"
-                    />
-                    <Button 
-                      type="button" 
-                      variant="secondary" 
-                      size="sm"
-                      onClick={() => handleVerifyAccurate(index)}
-                      disabled={inv.status === "loading" || !inv.no}
-                    >
-                      {inv.status === "loading" ? "Mencari..." : <Search className="h-4 w-4" />}
-                    </Button>
-                    {formData.invoices.length > 1 && (
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleRemoveInvoice(index)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    )}
-                  </div>
-                  {inv.status === "success" && inv.data && (
-                    <div className="flex flex-col gap-1 mt-1 text-xs text-green-700 ml-10 p-2 bg-green-50 rounded-md border border-green-100">
-                      <div className="flex items-center gap-2 font-semibold">
-                        <CheckCircle2 className="h-3 w-3" />
-                        <span>{inv.data.customer_code ? `${inv.data.customer_code} - ` : ''}{inv.data.company_name}</span>
-                      </div>
-                      {inv.data.customer_address && (
-                        <div className="text-muted-foreground ml-5 line-clamp-1">{inv.data.customer_address}</div>
-                      )}
-                      {inv.data.items_summary && (
-                        <div className="ml-5 font-medium text-muted-foreground">{inv.data.items_summary}</div>
-                      )}
-                      {inv.data.total_amount > 0 && (
-                        <div className="ml-5 font-semibold">Rp {inv.data.total_amount.toLocaleString('id-ID')}</div>
-                      )}
-                    </div>
-                  )}
-                  {inv.status === "error" && (
-                    <div className="flex items-center gap-2 text-xs text-red-500 ml-10">
-                      <AlertCircle className="h-3 w-3" />
-                      <span>{inv.data || "Gagal verifikasi ke Accurate"}</span>
-                    </div>
-                  )}
+            <div className="flex flex-col gap-2 p-4 border rounded-lg bg-muted/20">
+              <label className="text-sm font-medium">Input/Scan Barcode Faktur</label>
+              <div className="flex items-center gap-3">
+                <Input 
+                  ref={inputRef}
+                  placeholder="Scan Barcode / Ketik Faktur + Enter"
+                  value={currentInput}
+                  onChange={(e) => setCurrentInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="flex-1 invoice-input border-primary/20 focus-visible:ring-primary"
+                  autoFocus
+                />
+                <Button 
+                  type="button" 
+                  onClick={handleVerifyCurrent}
+                  disabled={inputStatus === "loading" || !currentInput.trim()}
+                >
+                  {inputStatus === "loading" ? "Mencari..." : "Tambahkan"}
+                </Button>
+              </div>
+              {inputStatus === "error" && (
+                <div className="flex items-center gap-2 text-xs text-red-500 mt-1">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{inputError}</span>
                 </div>
-              ))}
+              )}
             </div>
+
+            {formData.invoices.length > 0 && (
+              <div className="rounded-md border overflow-hidden mt-4">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50 border-b">
+                    <tr>
+                      <th className="px-4 py-2 text-left font-medium w-12">No</th>
+                      <th className="px-4 py-2 text-left font-medium">No. Faktur</th>
+                      <th className="px-4 py-2 text-left font-medium">Pelanggan</th>
+                      <th className="px-4 py-2 text-left font-medium">Total</th>
+                      <th className="px-4 py-2 text-center font-medium w-16">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {formData.invoices.map((inv, index) => (
+                      <tr key={index} className="border-b last:border-0 hover:bg-muted/20">
+                        <td className="px-4 py-3 text-muted-foreground">{index + 1}</td>
+                        <td className="px-4 py-3 font-mono font-medium">{inv.no}</td>
+                        <td className="px-4 py-3">
+                          <div className="font-medium">{inv.data?.company_name}</div>
+                          <div className="text-xs text-muted-foreground truncate max-w-[200px] md:max-w-[300px]">
+                            {inv.data?.items_summary || "-"}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 font-medium">
+                          {inv.data?.total_amount ? `Rp ${inv.data.total_amount.toLocaleString('id-ID')}` : "-"}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon"
+                            className="h-8 w-8 hover:text-red-500 hover:bg-red-50"
+                            onClick={() => handleRemoveInvoice(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           <div className="pt-6 flex gap-3 justify-end">
             <Link href="/transactions">
               <Button type="button" variant="ghost">Batal</Button>
             </Link>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting || formData.invoices.length === 0}>
               {isSubmitting ? "Menyimpan..." : "Simpan Manifest"}
             </Button>
           </div>
