@@ -19,8 +19,11 @@ function getAccurateSignature(timestamp: string, secret: string) {
  */
 function getAccurateTimestamp() {
   const date = new Date();
+  // Vercel runs in UTC. We force the time to Asia/Jakarta (GMT+7)
+  const jakartaTime = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+  
   const pad = (n: number) => n.toString().padStart(2, '0');
-  return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  return `${pad(jakartaTime.getDate())}/${pad(jakartaTime.getMonth() + 1)}/${jakartaTime.getFullYear()} ${pad(jakartaTime.getHours())}:${pad(jakartaTime.getMinutes())}:${pad(jakartaTime.getSeconds())}`;
 }
 
 /**
