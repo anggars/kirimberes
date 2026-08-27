@@ -173,10 +173,12 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           @page { size: A4; margin: 1cm; }
+          html, body { background-color: white !important; color: black !important; margin: 0 !important; padding: 0 !important; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
           /* Hide the sidebar and other non-print elements */
           aside, header, nav, .sidebar { display: none !important; }
-          main { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+          main { margin: 0 !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
+          .max-w-5xl { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
         }
       `}} />
 
