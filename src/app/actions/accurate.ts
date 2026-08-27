@@ -59,6 +59,47 @@ export async function searchSalesInvoice(invoiceNo: string) {
 }
 
 /**
+ * Search for multiple Sales Invoices with keyword (for manual lookup)
+ */
+export async function searchSalesInvoicesAdvanced(keyword: string = "") {
+  try {
+    const host = await getDbHost();
+    
+    // Using accurate's list API with a generic 'keywords' parameter or customer filter
+    // If accurate doesn't support 'keywords', we might need to filter by customer name or number
+    let url = `/api/sales-invoice/list.do?fields=id,number,customer,totalAmount,transDate`;
+    if (keyword) {
+      // Filtering by number containing keyword (LIKE)
+      url += `&filter.number.op=LIKE&filter.number.val=%${encodeURIComponent(keyword)}%`;
+    }
+    
+    const response = await fetchAccurateAPI(url, "GET", undefined, host);
+
+    if (response.s === false) {
+      return { success: false, error: response.d[0] };
+    }
+
+    if (!response.d) {
+      return { success: true, data: [] };
+    }
+    
+    return {
+      success: true,
+      data: response.d.map((invoice: any) => ({
+        id: invoice.id,
+        invoice_no: invoice.number,
+        company_name: invoice.customer?.name || "",
+        total_amount: invoice.totalAmount || 0,
+        trans_date: invoice.transDate || ""
+      }))
+    };
+  } catch (error: any) {
+    console.error("Error searching Accurate invoices advanced:", error);
+    return { success: false, error: error.message || "Gagal menghubungi server Accurate." };
+  }
+}
+
+/**
  * Send a Delivery Order to Accurate when a transaction is completed
  */
 export async function createDeliveryOrder(transactionNo: string, date: string, invoices: string[]) {

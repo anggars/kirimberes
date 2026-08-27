@@ -10,6 +10,7 @@ import { createTransaction } from "@/app/actions"
 import { PlusCircle, Trash2, ArrowLeft, Search, CheckCircle2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { searchSalesInvoice } from "@/app/actions/accurate"
+import { InvoiceSearchModal } from "./invoice-search-modal"
 
 export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles: Vehicle[] }) {
   const router = useRouter()
@@ -73,6 +74,35 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
       updatedInvoices[index].data = res.error
     }
     setFormData({ ...formData, invoices: updatedInvoices })
+  }
+
+  const handleSelectFromModal = async (invoiceNo: string) => {
+    // Find first empty slot or add new one
+    let targetIndex = formData.invoices.findIndex(inv => inv.no.trim() === "");
+    
+    const newInvoices = [...formData.invoices];
+    if (targetIndex === -1) {
+      targetIndex = newInvoices.length;
+      newInvoices.push({ no: invoiceNo, status: "idle", data: null as any });
+    } else {
+      newInvoices[targetIndex].no = invoiceNo;
+    }
+    
+    setFormData({ ...formData, invoices: newInvoices });
+    
+    // Slight delay to allow state to update before verifying
+    setTimeout(() => {
+      handleVerifyAccurate(targetIndex);
+      // Automatically add an empty row below it for the next scan
+      setTimeout(() => {
+        setFormData(current => {
+          if (current.invoices[current.invoices.length - 1].no !== "") {
+            return { ...current, invoices: [...current.invoices, { no: "", status: "idle", data: null }] };
+          }
+          return current;
+        });
+      }, 100);
+    }, 50);
   }
 
   // Handle barcode scanner 'Enter' keypress
@@ -224,7 +254,10 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
 
           <div className="space-y-4 pt-4 border-t">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg">Daftar Invoice / Kargo</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">Daftar Invoice / Kargo</h3>
+                <InvoiceSearchModal onSelect={handleSelectFromModal} disabled={isSubmitting} />
+              </div>
               <Button type="button" variant="outline" size="sm" onClick={handleAddInvoice}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Tambah Baris
