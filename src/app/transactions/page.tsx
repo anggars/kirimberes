@@ -19,6 +19,7 @@ import Link from "next/link"
 import { DeleteTransactionButton } from "@/components/delete-transaction-button"
 import { ExportExcelButton } from "@/components/export-excel-button"
 import { PrintQRButton } from "@/components/print-qr-button"
+import { PrintManifestButton } from "@/components/print-manifest-button"
 import { TrackingModal } from "@/components/tracking-modal"
 import { getSession } from "@/lib/session"
 
@@ -153,7 +154,7 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
                   <TableHead>Kru & Kendaraan</TableHead>
                   <TableHead>Pembuat</TableHead>
                   <TableHead>Invoices</TableHead>
-                  {isAdmin && <TableHead className="text-right">Aksi</TableHead>}
+                  <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -202,11 +203,12 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
                         ))}
                       </div>
                     </TableCell>
-                    {isAdmin && (
-                      <TableCell className="text-right">
-                        <DeleteTransactionButton transaction_no={tx.transaction_no} />
-                      </TableCell>
-                    )}
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <PrintManifestButton transaction_no={tx.transaction_no} />
+                        {isAdmin && <DeleteTransactionButton transaction_no={tx.transaction_no} />}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
                 {transactions.length === 0 && (
