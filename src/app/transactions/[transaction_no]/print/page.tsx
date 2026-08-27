@@ -40,7 +40,7 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
             <tr>
               <td className="pr-4 py-0.5">Tgl</td>
               <td className="px-2">:</td>
-              <td className="border-b border-black border-dotted min-w-[150px]">
+              <td className="border-b border-black border-dotted min-w-37.5">
                 {new Date(tx.transaction_date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}
               </td>
             </tr>
@@ -160,7 +160,7 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
                 <td className="py-2 pt-4 whitespace-nowrap" colSpan={3}>
                   <div className="flex items-center">
                     <span>Total Pengiriman : (</span>
-                    <span className="flex-1 border-b border-black border-dotted mx-2 min-w-[50px]"></span>
+                    <span className="flex-1 border-b border-black border-dotted mx-2 min-w-12.5"></span>
                     <span>) Crt</span>
                   </div>
                 </td>

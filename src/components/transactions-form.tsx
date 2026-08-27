@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { createTransaction } from "@/app/actions"
-import { PlusCircle, Trash2, ArrowLeft } from "lucide-react"
+import { PlusCircle, Trash2, ArrowLeft, Search, CheckCircle2, AlertCircle } from "lucide-react"
 import Link from "next/link"
+import { searchSalesInvoice } from "@/app/actions/accurate"
 
 export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles: Vehicle[] }) {
   const router = useRouter()
@@ -19,7 +20,7 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     driver_id: "",
     helper_id: "",
     vehicle_plate: "",
-    invoices: [""]
+    invoices: [{ no: "", status: "idle", data: null as any }] // status: idle, loading, success, error
   })
 
   // Auto-generate transaction number on mount
@@ -37,7 +38,7 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
   }, [])
 
   const handleAddInvoice = () => {
-    setFormData(prev => ({ ...prev, invoices: [...prev.invoices, ""] }))
+    setFormData(prev => ({ ...prev, invoices: [...prev.invoices, { no: "", status: "idle", data: null }] }))
   }
 
   const handleRemoveInvoice = (index: number) => {
@@ -47,8 +48,31 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
 
   const handleInvoiceChange = (index: number, value: string) => {
     const newInvoices = [...formData.invoices]
-    newInvoices[index] = value
+    newInvoices[index].no = value
+    newInvoices[index].status = "idle"
+    newInvoices[index].data = null
     setFormData({ ...formData, invoices: newInvoices })
+  }
+
+  const handleVerifyAccurate = async (index: number) => {
+    const invoiceNo = formData.invoices[index].no.trim();
+    if (!invoiceNo) return;
+    
+    const newInvoices = [...formData.invoices]
+    newInvoices[index].status = "loading"
+    setFormData({ ...formData, invoices: newInvoices })
+
+    const res = await searchSalesInvoice(invoiceNo)
+    
+    const updatedInvoices = [...formData.invoices]
+    if (res.success) {
+      updatedInvoices[index].status = "success"
+      updatedInvoices[index].data = res.data
+    } else {
+      updatedInvoices[index].status = "error"
+      updatedInvoices[index].data = res.error
+    }
+    setFormData({ ...formData, invoices: updatedInvoices })
   }
 
   // Handle barcode scanner 'Enter' keypress
@@ -57,7 +81,10 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
       e.preventDefault() // Prevent form submission
       
       // Only add a new row if the current one is not empty
-      if (formData.invoices[index].trim() !== "") {
+      if (formData.invoices[index].no.trim() !== "") {
+        // Automatically verify with accurate when pressing enter
+        handleVerifyAccurate(index)
+        
         handleAddInvoice()
         
         // Use timeout to wait for React to render the new input, then focus it
@@ -77,7 +104,7 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     
     try {
       // Filter out empty invoices
-      const validInvoices = formData.invoices.filter(inv => inv.trim() !== "")
+      const validInvoices = formData.invoices.filter(inv => inv.no.trim() !== "").map(inv => inv.no.trim())
       if (validInvoices.length === 0) {
         alert("Harap masukkan setidaknya satu nomor invoice.")
         setIsSubmitting(false)
@@ -206,26 +233,49 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
             
             <div className="space-y-3">
               {formData.invoices.map((inv, index) => (
-                <div key={index} className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-muted-foreground w-6">{index + 1}.</span>
-                  <Input 
-                    required
-                    autoFocus={index === formData.invoices.length - 1 && index !== 0}
-                    placeholder="Scan Barcode / Ketik Invoice + Enter"
-                    value={inv}
-                    onChange={(e) => handleInvoiceChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(e, index)}
-                    className="flex-1 invoice-input"
-                  />
-                  {formData.invoices.length > 1 && (
+                <div key={index} className="flex flex-col gap-1">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-muted-foreground w-6">{index + 1}.</span>
+                    <Input 
+                      required
+                      autoFocus={index === formData.invoices.length - 1 && index !== 0}
+                      placeholder="Scan Barcode / Ketik Invoice + Enter"
+                      value={inv.no}
+                      onChange={(e) => handleInvoiceChange(index, e.target.value)}
+                      onKeyDown={(e) => handleKeyDown(e, index)}
+                      className="flex-1 invoice-input"
+                    />
                     <Button 
                       type="button" 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => handleRemoveInvoice(index)}
+                      variant="secondary" 
+                      size="sm"
+                      onClick={() => handleVerifyAccurate(index)}
+                      disabled={inv.status === "loading" || !inv.no}
                     >
-                      <Trash2 className="h-4 w-4 text-red-500" />
+                      {inv.status === "loading" ? "Mencari..." : <Search className="h-4 w-4" />}
                     </Button>
+                    {formData.invoices.length > 1 && (
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleRemoveInvoice(index)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    )}
+                  </div>
+                  {inv.status === "success" && inv.data && (
+                    <div className="flex items-center gap-2 text-xs text-green-600 ml-10">
+                      <CheckCircle2 className="h-3 w-3" />
+                      <span>{inv.data.company_name} - Rp {inv.data.total_amount.toLocaleString('id-ID')}</span>
+                    </div>
+                  )}
+                  {inv.status === "error" && (
+                    <div className="flex items-center gap-2 text-xs text-red-500 ml-10">
+                      <AlertCircle className="h-3 w-3" />
+                      <span>{inv.data || "Gagal verifikasi ke Accurate"}</span>
+                    </div>
                   )}
                 </div>
               ))}

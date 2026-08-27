@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { getSession } from "@/lib/session"
+import { createDeliveryOrder } from "./accurate"
 
 export async function getTrackingHistory(invoice_no: string) {
   try {
@@ -45,7 +46,8 @@ export async function updateTrackingStatus(formData: FormData) {
 
   try {
     const invoice = await prisma.transactionInvoice.findUnique({
-      where: { invoice_no }
+      where: { invoice_no },
+      include: { transaction: true }
     })
 
     if (!invoice) return { error: "Nomor resi tidak ditemukan di sistem" }
@@ -68,6 +70,23 @@ export async function updateTrackingStatus(formData: FormData) {
         lng: formData.get("lng") ? parseFloat(formData.get("lng") as string) : null,
       }
     })
+
+    // If delivered, push to Accurate
+    if (status === "DELIVERED") {
+      try {
+        const doResult = await createDeliveryOrder(
+          invoice.transaction.transaction_no,
+          new Date().toISOString(),
+          [invoice.invoice_no]
+        );
+        if (!doResult.success) {
+          console.warn("Accurate DO Push Failed:", doResult.error);
+          // Optional: we can return a warning to the user, but we still return success for the local update
+        }
+      } catch (doError) {
+        console.error("Error pushing DO to accurate", doError);
+      }
+    }
 
     return { success: true }
   } catch (error) {
