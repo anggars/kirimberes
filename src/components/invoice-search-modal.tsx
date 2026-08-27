@@ -59,11 +59,13 @@ export function InvoiceSearchModal({ onSelect, disabled }: InvoiceSearchModalPro
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button type="button" variant="outline" size="sm" disabled={disabled} className="ml-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 hover:text-blue-800">
-          <Search className="mr-2 h-4 w-4" />
-          Cari Manual (Accurate)
-        </Button>
+      <DialogTrigger 
+        render={
+          <Button type="button" variant="outline" size="sm" disabled={disabled} className="ml-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 hover:text-blue-800" />
+        }
+      >
+        <Search className="mr-2 h-4 w-4" />
+        Cari Manual (Accurate)
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[80vh] flex flex-col">
         <DialogHeader>
@@ -96,7 +98,7 @@ export function InvoiceSearchModal({ onSelect, disabled }: InvoiceSearchModalPro
                 <TableHead>Pelanggan</TableHead>
                 <TableHead>Tanggal</TableHead>
                 <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-center w-[100px]">Aksi</TableHead>
+                <TableHead className="text-center w-25">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
