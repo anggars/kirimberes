@@ -94,6 +94,7 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
     transactions = await prisma.transaction.findMany({
       where: whereClause,
       orderBy: { transaction_date: 'desc' },
+      take: 100,
       include: {
         driver: true,
         helper: true,

@@ -84,10 +84,25 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
         return
       }
 
-      await createTransaction({
+      // Check for duplicates within the form
+      const uniqueInvoices = new Set(validInvoices)
+      if (uniqueInvoices.size !== validInvoices.length) {
+        alert("Terdapat nomor invoice ganda (duplikat) di dalam form. Harap periksa kembali.")
+        setIsSubmitting(false)
+        return
+      }
+
+      const result = await createTransaction({
         ...formData,
         invoices: validInvoices
       })
+
+      if (result && !result.success) {
+        alert(result.error)
+        setIsSubmitting(false)
+        return
+      }
+
       router.push("/transactions")
     } catch (error) {
       console.error(error)

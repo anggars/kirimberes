@@ -55,6 +55,18 @@ export async function createTransaction(data: {
   const { getSession } = await import("@/lib/session")
   const session = await getSession()
   
+  // Check for duplicate invoices in the database
+  const existingInvoices = await prisma.transactionInvoice.findMany({
+    where: {
+      invoice_no: { in: data.invoices }
+    }
+  })
+
+  if (existingInvoices.length > 0) {
+    const duplicates = existingInvoices.map((inv) => inv.invoice_no).join(", ")
+    return { success: false, error: `Gagal: Invoice sudah terdaftar di sistem (${duplicates})` }
+  }
+
   await prisma.transaction.create({
     data: {
       transaction_no: data.transaction_no,
@@ -70,6 +82,7 @@ export async function createTransaction(data: {
   })
   revalidatePath("/transactions")
   revalidatePath("/")
+  return { success: true }
 }
 
 export async function deleteTransaction(transaction_no: string) {
