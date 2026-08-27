@@ -61,7 +61,7 @@ export async function openAccurateDatabase(dbId: string) {
     // If the token is already bound to a database session, Accurate will reject open-db.do
     // with this specific message. We can just use the base host in that case.
     if (data.d && data.d[0] && typeof data.d[0] === 'string' && data.d[0].includes("termasuk Sesi Database")) {
-      return ACCURATE_HOST;
+      return "https://public.accurate.id/accurate";
     }
     throw new Error("Failed to open Accurate DB: " + JSON.stringify(data.d));
   }
