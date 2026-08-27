@@ -48,7 +48,12 @@ export async function fetchAccurateAPI(endpoint: string, method = "GET", body?: 
     body: body ? JSON.stringify(body) : undefined,
   });
   
-  return response.json();
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    throw new Error(`Accurate API returned non-JSON response (${response.status} ${response.statusText}): ${text.substring(0, 150)}`);
+  }
 }
 
 /**
