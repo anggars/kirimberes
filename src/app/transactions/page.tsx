@@ -38,7 +38,7 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
   const invoiceFilter = typeof invoiceParam === 'string' ? invoiceParam : undefined
 
   const session = await getSession()
-  const isAdmin = session?.role === "ADMIN"
+  const isAdmin = session?.role === "ADMIN" || session?.role === "SUPER_USER"
 
   let whereClause: any = {}
   const conditions: any[] = []

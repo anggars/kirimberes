@@ -21,40 +21,41 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
   }
 
   // Determine the number of rows to render. 
-  // If invoices are less than 20, render at least 20 rows so the table has empty space for handwriting.
-  const minRows = 25;
+  // If invoices are less than 22, render at least 22 rows so the table has empty space for handwriting, 
+  // ensuring it fits perfectly on one A4 page.
+  const minRows = 22;
   const rowsCount = Math.max(minRows, tx.invoices.length);
   const rows = Array.from({ length: rowsCount });
 
   return (
-    <div className="bg-white text-black p-8 max-w-5xl mx-auto min-h-screen font-sans text-sm">
-      <div className="flex justify-between items-start mb-6">
+    <div className="bg-white text-black p-4 md:p-8 max-w-5xl mx-auto min-h-screen font-sans text-xs">
+      <div className="flex justify-between items-start mb-4">
         <div>
-          <h1 className="text-xl font-bold">Laporan Pengiriman Barang</h1>
-          <p className="text-xs text-gray-500 mt-1">No. Transaksi: {tx.transaction_no}</p>
+          <h1 className="text-lg font-bold">Laporan Pengiriman Barang</h1>
+          <p className="text-[10px] text-gray-500 mt-1">No. Transaksi: {tx.transaction_no}</p>
         </div>
         
-        <table className="text-sm">
+        <table className="text-xs">
           <tbody>
             <tr>
-              <td className="pr-4 py-1">Tgl</td>
+              <td className="pr-4 py-0.5">Tgl</td>
               <td className="px-2">:</td>
               <td className="border-b border-black border-dotted min-w-[150px]">
                 {new Date(tx.transaction_date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}
               </td>
             </tr>
             <tr>
-              <td className="pr-4 py-1">Supir</td>
+              <td className="pr-4 py-0.5">Supir</td>
               <td className="px-2">:</td>
               <td className="border-b border-black border-dotted capitalize">{tx.driver.name}</td>
             </tr>
             <tr>
-              <td className="pr-4 py-1">Kneck</td>
+              <td className="pr-4 py-0.5">Kneck</td>
               <td className="px-2">:</td>
               <td className="border-b border-black border-dotted capitalize">{tx.helper.name}</td>
             </tr>
             <tr>
-              <td className="pr-4 py-1">No. Polisi</td>
+              <td className="pr-4 py-0.5">No. Polisi</td>
               <td className="px-2">:</td>
               <td className="border-b border-black border-dotted uppercase">{tx.vehicle.plate_number}</td>
             </tr>
@@ -62,30 +63,30 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
         </table>
       </div>
 
-      <table className="w-full border-collapse border border-black mb-8 text-sm">
+      <table className="w-full border-collapse border border-black mb-4 text-xs">
         <thead>
           <tr>
-            <th className="border border-black px-2 py-2 text-center w-10">No.</th>
-            <th className="border border-black px-2 py-2 text-center w-64">Nama Perusahaan</th>
-            <th className="border border-black px-2 py-2 text-center w-24">Biaya<br/>Parkir</th>
-            <th className="border border-black px-2 py-2 text-center w-24">Total Yg<br/>Di Bawa</th>
-            <th className="border border-black px-2 py-2 text-center w-24">Total Yg<br/>Di Terima</th>
-            <th className="border border-black px-2 py-2 text-center w-32">No<br/>Faktur</th>
-            <th className="border border-black px-2 py-2 text-center">Barang-Barang<br/>Kembalian</th>
+            <th className="border border-black px-1 py-1 text-center w-8">No.</th>
+            <th className="border border-black px-1 py-1 text-center w-64">Nama Perusahaan</th>
+            <th className="border border-black px-1 py-1 text-center w-20">Biaya<br/>Parkir</th>
+            <th className="border border-black px-1 py-1 text-center w-20">Total Yg<br/>Dibawa</th>
+            <th className="border border-black px-1 py-1 text-center w-20">Total Yg<br/>Diterima</th>
+            <th className="border border-black px-1 py-1 text-center w-28">No<br/>Faktur</th>
+            <th className="border border-black px-1 py-1 text-center">Barang-Barang<br/>Kembalian</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((_, idx) => {
             const inv = tx.invoices[idx];
             return (
-              <tr key={idx} className="h-8">
-                <td className="border border-black px-2 py-1 text-center">{idx + 1}</td>
-                <td className="border border-black px-2 py-1"></td>
-                <td className="border border-black px-2 py-1"></td>
-                <td className="border border-black px-2 py-1"></td>
-                <td className="border border-black px-2 py-1"></td>
-                <td className="border border-black px-2 py-1 text-center font-mono text-xs">{inv?.invoice_no || ""}</td>
-                <td className="border border-black px-2 py-1"></td>
+              <tr key={idx} className="h-6">
+                <td className="border border-black px-1 py-0.5 text-center">{idx + 1}</td>
+                <td className="border border-black px-1 py-0.5"></td>
+                <td className="border border-black px-1 py-0.5"></td>
+                <td className="border border-black px-1 py-0.5"></td>
+                <td className="border border-black px-1 py-0.5"></td>
+                <td className="border border-black px-1 py-0.5 text-center font-mono text-[10px]">{inv?.invoice_no || ""}</td>
+                <td className="border border-black px-1 py-0.5"></td>
               </tr>
             )
           })}
