@@ -21,11 +21,22 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
   }
 
   // Determine the number of rows to render. 
-  // If invoices are less than 22, render at least 22 rows so the table has empty space for handwriting, 
-  // ensuring it fits perfectly on one A4 page.
-  const minRows = 22;
+  // Minimum 10 rows so the table has empty space for handwriting.
+  const minRows = 10;
   const rowsCount = Math.max(minRows, tx.invoices.length);
   const rows = Array.from({ length: rowsCount });
+
+  const getExtractedItemNames = (summary?: string) => {
+    if (!summary) return "";
+    return summary.split(',').map(item => item.split('(')[0].trim()).join(', ');
+  }
+
+  const getExtractedItemQty = (summary?: string) => {
+    if (!summary) return "";
+    const matches = summary.match(/\((\d+)\)/g);
+    if (!matches) return "";
+    return matches.reduce((sum, match) => sum + parseInt(match.replace(/\D/g, '')), 0) || "";
+  }
 
   return (
     <div className="bg-white text-black p-4 md:p-8 max-w-5xl mx-auto min-h-screen font-sans text-xs">
@@ -67,23 +78,25 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
         <thead>
           <tr>
             <th className="border border-black px-1 py-1 text-center w-8">No.</th>
-            <th className="border border-black px-1 py-1 text-center w-64">Nama Perusahaan</th>
-            <th className="border border-black px-1 py-1 text-center w-20">Biaya<br/>Parkir</th>
-            <th className="border border-black px-1 py-1 text-center w-20">Total Yg<br/>Dibawa</th>
-            <th className="border border-black px-1 py-1 text-center w-20">Total Yg<br/>Diterima</th>
-            <th className="border border-black px-1 py-1 text-center w-28">No<br/>Faktur</th>
-            <th className="border border-black px-1 py-1 text-center">Barang-Barang<br/>Kembalian</th>
+            <th className="border border-black px-1 py-1 text-center w-52">Nama Perusahaan</th>
+            <th className="border border-black px-1 py-1 text-center w-52">Nama Barang</th>
+            <th className="border border-black px-1 py-1 text-center w-16">Biaya<br/>Parkir</th>
+            <th className="border border-black px-1 py-1 text-center w-16">Total Yg<br/>Dibawa</th>
+            <th className="border border-black px-1 py-1 text-center w-16">Total Yg<br/>Diterima</th>
+            <th className="border border-black px-1 py-1 text-center w-24">No<br/>Faktur</th>
+            <th className="border border-black px-1 py-1 text-center">Keterangan / Lain-lain</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((_, idx) => {
-            const inv = tx.invoices[idx];
+            const inv = tx.invoices[idx] as any;
             return (
               <tr key={idx} className="h-6">
                 <td className="border border-black px-1 py-0.5 text-center">{idx + 1}</td>
                 <td className="border border-black px-1 py-0.5 font-semibold text-[10px] leading-tight">{inv?.customer_name || ""}</td>
+                <td className="border border-black px-1 py-0.5 text-[10px] leading-tight">{inv?.items_summary ? getExtractedItemNames(inv.items_summary) : ""}</td>
                 <td className="border border-black px-1 py-0.5"></td>
-                <td className="border border-black px-1 py-0.5"></td>
+                <td className="border border-black px-1 py-0.5 text-center text-[10px] font-bold">{inv?.items_summary ? getExtractedItemQty(inv.items_summary) : ""}</td>
                 <td className="border border-black px-1 py-0.5"></td>
                 <td className="border border-black px-1 py-0.5 text-center font-mono text-[10px]">{inv?.invoice_no || ""}</td>
                 <td className="border border-black px-1 py-0.5"></td>

@@ -10,7 +10,6 @@ import { createTransaction } from "@/app/actions"
 import { PlusCircle, Trash2, ArrowLeft, Search, CheckCircle2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { searchSalesInvoice } from "@/app/actions/accurate"
-import { InvoiceSearchModal } from "./invoice-search-modal"
 
 export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles: Vehicle[] }) {
   const router = useRouter()
@@ -76,35 +75,7 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     setFormData({ ...formData, invoices: updatedInvoices })
   }
 
-  const handleSelectFromModal = async (invoiceNo: string) => {
-    // Find first empty slot or add new one
-    let targetIndex = formData.invoices.findIndex(inv => inv.no.trim() === "");
-    
-    const newInvoices = [...formData.invoices];
-    if (targetIndex === -1) {
-      targetIndex = newInvoices.length;
-      newInvoices.push({ no: invoiceNo, status: "idle", data: null as any });
-    } else {
-      newInvoices[targetIndex].no = invoiceNo;
-    }
-    
-    setFormData({ ...formData, invoices: newInvoices });
-    
-    // Slight delay to allow state to update before verifying
-    setTimeout(() => {
-      handleVerifyAccurate(targetIndex);
-      // Automatically add an empty row below it for the next scan
-      setTimeout(() => {
-        setFormData(current => {
-          if (current.invoices[current.invoices.length - 1].no !== "") {
-            return { ...current, invoices: [...current.invoices, { no: "", status: "idle", data: null }] };
-          }
-          return current;
-        });
-      }, 100);
-    }, 50);
-  }
-
+  // Modal removed as per client feedback
   // Handle barcode scanner 'Enter' keypress
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === 'Enter') {
@@ -236,7 +207,7 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                   onChange={(e) => setFormData({...formData, driver_id: e.target.value})}
                 >
                   <option value="" disabled>Pilih Supir</option>
-                  {crews.map(c => (
+                  {crews.filter(c => c.id !== formData.helper_id).map(c => (
                     <option key={c.id} value={c.id}>
                       {c.name} ({c.id})
                     </option>
@@ -252,7 +223,7 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                   onChange={(e) => setFormData({...formData, helper_id: e.target.value})}
                 >
                   <option value="" disabled>Pilih Kenek</option>
-                  {crews.map(c => (
+                  {crews.filter(c => c.id !== formData.driver_id).map(c => (
                     <option key={c.id} value={c.id}>
                       {c.name} ({c.id})
                     </option>
@@ -266,7 +237,6 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold text-lg">Daftar Invoice / Kargo</h3>
-                <InvoiceSearchModal onSelect={handleSelectFromModal} disabled={isSubmitting} />
               </div>
               <Button type="button" variant="outline" size="sm" onClick={handleAddInvoice}>
                 <PlusCircle className="mr-2 h-4 w-4" />

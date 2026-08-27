@@ -2,10 +2,8 @@
 
 import { useState } from "react"
 import { getTrackingHistory } from "@/app/actions/tracking"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { FileText, MapPin, Package, CheckCircle2, Truck, Clock, Navigation } from "lucide-react"
-import { Map, Marker } from "pigeon-maps"
+import { FileText, Navigation, User, MapPin, Package, DollarSign } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -32,28 +30,6 @@ export function TrackingModal({ invoice_no }: { invoice_no: string }) {
     }
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "PENDING": return <Clock className="h-5 w-5 text-amber-500" />
-      case "IN_TRANSIT": return <Truck className="h-5 w-5 text-blue-500" />
-      case "DELIVERED": return <CheckCircle2 className="h-5 w-5 text-green-500" />
-      default: return <Package className="h-5 w-5 text-muted-foreground" />
-    }
-  }
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "PENDING": return "Menunggu Pengiriman"
-      case "IN_TRANSIT": return "Dalam Perjalanan"
-      case "DELIVERED": return "Telah Terkirim"
-      case "CANCELLED": return "Dibatalkan"
-      default: return status
-    }
-  }
-
-  const latestLocation = data?.trackingHistory?.find((h: any) => h.lat && h.lng)
-  const latestCoords = latestLocation ? { lat: latestLocation.lat, lng: latestLocation.lng } : null
-
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger>
@@ -62,14 +38,14 @@ export function TrackingModal({ invoice_no }: { invoice_no: string }) {
           {invoice_no}
         </Badge>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <Navigation className="h-5 w-5 text-primary" />
-            Lacak Resi: <span className="font-mono text-primary">{invoice_no}</span>
+            <FileText className="h-5 w-5 text-primary" />
+            Detail Faktur: <span className="font-mono text-primary">{invoice_no}</span>
           </DialogTitle>
           <DialogDescription>
-            Informasi pengiriman dan posisi realtime paket.
+            Informasi pelanggan dan rincian barang dari Accurate.
           </DialogDescription>
         </DialogHeader>
 
@@ -79,56 +55,50 @@ export function TrackingModal({ invoice_no }: { invoice_no: string }) {
           </div>
         ) : !data ? (
           <div className="py-8 text-center text-muted-foreground">
-            Data pelacakan tidak ditemukan.
+            Data faktur tidak ditemukan.
           </div>
         ) : (
-          <div className="space-y-6 mt-4">
-            {latestCoords ? (
-              <div className="rounded-xl overflow-hidden border shadow-inner h-50 relative">
-                <Map height={200} defaultCenter={[latestCoords.lat, latestCoords.lng]} defaultZoom={13}>
-                  <Marker width={50} anchor={[latestCoords.lat, latestCoords.lng]} color="#f97316" />
-                </Map>
-                <div className="absolute top-2 right-2 bg-background/90 backdrop-blur text-xs px-2 py-1 rounded shadow text-foreground font-medium flex items-center gap-1 border">
-                  <MapPin className="h-3 w-3 text-primary" /> Posisi Terakhir
+          <div className="space-y-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1 p-3 bg-muted/30 rounded-lg border">
+                <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-1">
+                  <User className="h-4 w-4" /> Pelanggan
+                </div>
+                <div className="font-medium text-base">
+                  {data.customer_code ? `${data.customer_code} - ` : ''}{data.customer_name || "-"}
                 </div>
               </div>
-            ) : (
-              <div className="rounded-xl border bg-muted/30 p-4 text-center text-sm text-muted-foreground">
-                Titik koordinat GPS belum tersedia untuk resi ini.
+              
+              <div className="flex flex-col gap-1 p-3 bg-muted/30 rounded-lg border">
+                <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-1">
+                  <DollarSign className="h-4 w-4" /> Nilai Faktur
+                </div>
+                <div className="font-bold text-lg text-primary">
+                  {data.total_amount ? `Rp ${data.total_amount.toLocaleString('id-ID')}` : "-"}
+                </div>
               </div>
-            )}
+            </div>
 
-            <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-linear-to-b before:from-transparent before:via-border before:to-transparent">
-              {data.trackingHistory.length === 0 ? (
-                <p className="text-center text-sm text-muted-foreground">Belum ada riwayat perjalanan.</p>
-              ) : (
-                data.trackingHistory.map((history: any) => (
-                  <div key={history.id} className="relative flex items-center justify-normal gap-4 group">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-background bg-primary/10 text-primary shrink-0 z-10">
-                      {getStatusIcon(history.status)}
-                    </div>
-                    <div className="flex-1 p-3 rounded-lg border bg-card shadow-sm">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold text-primary text-sm">{getStatusText(history.status)}</span>
-                        <time className="text-xs font-medium text-muted-foreground">
-                          {new Date(history.timestamp).toLocaleString('id-ID', {
-                            day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit'
-                          })}
-                        </time>
-                      </div>
-                      {history.location && (
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1 mt-1">
-                          <MapPin className="h-3.5 w-3.5 shrink-0" />
-                          <span className="font-medium">{history.location}</span>
-                        </div>
-                      )}
-                      {history.description && (
-                        <p className="text-xs mt-1.5">{history.description}</p>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
+            <div className="flex flex-col gap-1 p-3 bg-muted/30 rounded-lg border">
+              <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-1">
+                <MapPin className="h-4 w-4" /> Alamat Pengiriman
+              </div>
+              <div className="text-sm">
+                {data.customer_address || "-"}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1 p-3 bg-muted/30 rounded-lg border">
+              <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-1">
+                <Package className="h-4 w-4" /> Rincian Barang
+              </div>
+              <div className="text-sm font-mono whitespace-pre-wrap">
+                {data.items_summary ? data.items_summary.split(', ').join('\n') : "-"}
+              </div>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t text-xs text-muted-foreground">
+              Tergabung dalam Manifest: <span className="font-mono font-medium">{data.transaction_no}</span>
             </div>
           </div>
         )}
