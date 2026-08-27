@@ -172,13 +172,44 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
 
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
-          @page { size: A4; margin: 1cm; }
-          html, body { background-color: white !important; color: black !important; margin: 0 !important; padding: 0 !important; }
+          @page { size: A4; margin: 0.5cm; }
+          html, body { 
+            background-color: white !important; 
+            color: black !important; 
+            margin: 0 !important; 
+            padding: 0 !important; 
+          }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          /* Hide the sidebar and other non-print elements */
+          
+          /* Hide the sidebar and header */
           aside, header, nav, .sidebar { display: none !important; }
-          main { margin: 0 !important; padding: 0 !important; width: 100% !important; max-width: 100% !important; }
-          .max-w-5xl { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+          
+          /* Reset parent layout containers (LayoutWrapper) */
+          body > div { 
+            display: block !important; 
+            height: auto !important; 
+            background: white !important; 
+          }
+          main { 
+            display: block !important; 
+            overflow: visible !important; 
+            background: white !important; 
+            margin: 0 !important; 
+            padding: 0 !important;
+          }
+          main > div { 
+            padding: 0 !important; 
+            background: white !important; 
+            overflow: visible !important; 
+            height: auto !important;
+          }
+          
+          /* Make sure our print container takes full width */
+          .max-w-5xl { 
+            max-width: none !important; 
+            margin: 0 !important; 
+            padding: 0 !important; 
+          }
         }
       `}} />
 
