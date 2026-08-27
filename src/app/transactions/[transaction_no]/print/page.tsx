@@ -105,14 +105,14 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
             <div className="flex-1 border-b border-black border-dotted"></div>
           </div>
           
-          <div className="flex justify-between w-64 mt-8">
+          <div className="flex gap-16 mt-8">
             <div className="text-center">
               <p className="mb-16">Laporan dibuat,</p>
-              <p>( .................................. )</p>
+              <p className="whitespace-nowrap">( ........................................ )</p>
             </div>
             <div className="text-center">
               <p className="mb-16">Disetujui,</p>
-              <p>( .................................. )</p>
+              <p className="whitespace-nowrap">( ........................................ )</p>
             </div>
           </div>
         </div>
@@ -121,45 +121,45 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
           <table className="w-full text-sm">
             <tbody>
               <tr>
-                <td className="py-1">Total Parkir</td>
+                <td className="py-1 whitespace-nowrap">Total Parkir</td>
                 <td className="px-2">:</td>
                 <td className="border-b border-black border-dotted w-full"></td>
               </tr>
               <tr>
-                <td className="py-1">Biaya Lain</td>
+                <td className="py-1 whitespace-nowrap">Biaya Lain</td>
                 <td className="px-2">:</td>
                 <td className="border-b border-black border-dotted w-full"></td>
               </tr>
               <tr>
-                <td className="py-1">Bensin</td>
+                <td className="py-1 whitespace-nowrap">Bensin</td>
                 <td className="px-2">:</td>
                 <td className="border-b border-black border-dotted w-full"></td>
               </tr>
               <tr>
-                <td className="py-1">Pembelian Cash</td>
+                <td className="py-1 whitespace-nowrap">Pembelian Cash</td>
                 <td className="px-2">:</td>
                 <td className="border-b border-black border-dotted w-full"></td>
               </tr>
               <tr>
-                <td className="py-1">Total Seluruhnya</td>
+                <td className="py-1 whitespace-nowrap">Total Seluruhnya</td>
                 <td className="px-2">:</td>
                 <td className="border-b border-black border-dotted w-full"></td>
               </tr>
               <tr>
-                <td className="py-1">Penerimaan</td>
+                <td className="py-1 whitespace-nowrap">Penerimaan</td>
                 <td className="px-2">:</td>
                 <td className="border-b border-black border-dotted w-full"></td>
               </tr>
               <tr>
-                <td className="py-1">Sisa</td>
+                <td className="py-1 whitespace-nowrap">Sisa</td>
                 <td className="px-2">:</td>
                 <td className="border-b border-black border-dotted w-full"></td>
               </tr>
               <tr>
-                <td className="py-2 pt-4" colSpan={3}>
+                <td className="py-2 pt-4 whitespace-nowrap" colSpan={3}>
                   <div className="flex items-center">
                     <span>Total Pengiriman : (</span>
-                    <span className="flex-1 border-b border-black border-dotted mx-2"></span>
+                    <span className="flex-1 border-b border-black border-dotted mx-2 min-w-[50px]"></span>
                     <span>) Crt</span>
                   </div>
                 </td>
@@ -173,6 +173,9 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
         @media print {
           @page { size: A4; margin: 1cm; }
           body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          /* Hide the sidebar and other non-print elements */
+          aside, header, nav, .sidebar { display: none !important; }
+          main { margin: 0 !important; padding: 0 !important; width: 100% !important; }
         }
       `}} />
 
