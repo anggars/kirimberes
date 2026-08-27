@@ -20,7 +20,6 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     driver_id: "",
     helper_id: "",
     vehicle_plate: "",
-    vehicle_plate: "",
     invoices: [] as { no: string, data: any }[]
   })
 
@@ -265,7 +264,7 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                         <td className="px-4 py-3 font-mono font-medium">{inv.no}</td>
                         <td className="px-4 py-3">
                           <div className="font-medium">{inv.data?.company_name}</div>
-                          <div className="text-xs text-muted-foreground truncate max-w-[200px] md:max-w-[300px]">
+                          <div className="text-xs text-muted-foreground truncate max-w-50 md:max-w-75">
                             {inv.data?.items_summary || "-"}
                           </div>
                         </td>
