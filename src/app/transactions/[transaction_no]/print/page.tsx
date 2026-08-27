@@ -81,7 +81,7 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
             return (
               <tr key={idx} className="h-6">
                 <td className="border border-black px-1 py-0.5 text-center">{idx + 1}</td>
-                <td className="border border-black px-1 py-0.5"></td>
+                <td className="border border-black px-1 py-0.5 font-semibold text-[10px] leading-tight">{inv?.customer_name || ""}</td>
                 <td className="border border-black px-1 py-0.5"></td>
                 <td className="border border-black px-1 py-0.5"></td>
                 <td className="border border-black px-1 py-0.5"></td>

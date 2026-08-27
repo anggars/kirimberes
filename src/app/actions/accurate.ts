@@ -25,9 +25,9 @@ export async function searchSalesInvoice(invoiceNo: string) {
     const host = await getDbHost();
     
     // Using accurate's list API with a filter for the invoice number
-    // Accurate usually expects fields to search, e.g. "number"
+    // We add more fields to capture customer info and item names
     const response = await fetchAccurateAPI(
-      `/api/sales-invoice/list.do?fields=id,number,customer,totalAmount&filter.number.op=EQUAL&filter.number.val=${encodeURIComponent(invoiceNo)}`,
+      `/api/sales-invoice/list.do?fields=id,number,customer,totalAmount,shipTo,detailItem&filter.number.op=EQUAL&filter.number.val=${encodeURIComponent(invoiceNo)}`,
       "GET",
       undefined,
       host
@@ -43,13 +43,24 @@ export async function searchSalesInvoice(invoiceNo: string) {
 
     const invoice = response.d[0];
     
+    // Process items
+    let items_summary = "";
+    if (invoice.detailItem && Array.isArray(invoice.detailItem)) {
+      items_summary = invoice.detailItem.map((item: any) => 
+        `${item.item?.name || item.itemName} (${item.quantity || 0})`
+      ).join(", ");
+    }
+    
     return {
       success: true,
       data: {
         id: invoice.id,
         invoice_no: invoice.number,
         company_name: invoice.customer?.name || "",
+        customer_code: invoice.customer?.customerNo || invoice.customer?.no || "",
+        customer_address: invoice.shipTo || invoice.customer?.address || "",
         total_amount: invoice.totalAmount || 0,
+        items_summary
       }
     };
   } catch (error: any) {
@@ -67,7 +78,7 @@ export async function searchSalesInvoicesAdvanced(keyword: string = "") {
     
     // Using accurate's list API with a generic 'keywords' parameter or customer filter
     // If accurate doesn't support 'keywords', we might need to filter by customer name or number
-    let url = `/api/sales-invoice/list.do?fields=id,number,customer,totalAmount,transDate`;
+    let url = `/api/sales-invoice/list.do?fields=id,number,customer,totalAmount,transDate,shipTo,detailItem`;
     if (keyword) {
       // Filtering by number containing keyword (LIKE)
       url += `&filter.number.op=LIKE&filter.number.val=%${encodeURIComponent(keyword)}%`;
@@ -85,13 +96,25 @@ export async function searchSalesInvoicesAdvanced(keyword: string = "") {
     
     return {
       success: true,
-      data: response.d.map((invoice: any) => ({
-        id: invoice.id,
-        invoice_no: invoice.number,
-        company_name: invoice.customer?.name || "",
-        total_amount: invoice.totalAmount || 0,
-        trans_date: invoice.transDate || ""
-      }))
+      data: response.d.map((invoice: any) => {
+        let items_summary = "";
+        if (invoice.detailItem && Array.isArray(invoice.detailItem)) {
+          items_summary = invoice.detailItem.map((item: any) => 
+            `${item.item?.name || item.itemName} (${item.quantity || 0})`
+          ).join(", ");
+        }
+
+        return {
+          id: invoice.id,
+          invoice_no: invoice.number,
+          company_name: invoice.customer?.name || "",
+          customer_code: invoice.customer?.customerNo || invoice.customer?.no || "",
+          customer_address: invoice.shipTo || invoice.customer?.address || "",
+          total_amount: invoice.totalAmount || 0,
+          trans_date: invoice.transDate || "",
+          items_summary
+        };
+      })
     };
   } catch (error: any) {
     console.error("Error searching Accurate invoices advanced:", error);

@@ -194,11 +194,23 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1.5 max-w-62.5">
+                      <div className="flex flex-col gap-2 max-w-xs">
                         {tx.invoices.map((inv: any) => (
-                          <div key={inv.id} className="flex items-center gap-1">
-                            <TrackingModal invoice_no={inv.invoice_no} />
-                            <PrintQRButton invoice_no={inv.invoice_no} />
+                          <div key={inv.id} className="flex flex-col gap-1 p-2 bg-muted/30 rounded-md">
+                            <div className="flex items-center gap-1">
+                              <TrackingModal invoice_no={inv.invoice_no} />
+                              <PrintQRButton invoice_no={inv.invoice_no} />
+                            </div>
+                            {inv.customer_name && (
+                              <div className="text-xs text-muted-foreground">
+                                <span className="font-semibold">{inv.customer_name}</span>
+                                {inv.items_summary && (
+                                  <span className="block truncate text-[10px] mt-0.5" title={inv.items_summary}>
+                                    {inv.items_summary}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>

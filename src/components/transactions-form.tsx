@@ -134,7 +134,7 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     
     try {
       // Filter out empty invoices
-      const validInvoices = formData.invoices.filter(inv => inv.no.trim() !== "").map(inv => inv.no.trim())
+      const validInvoices = formData.invoices.filter(inv => inv.no.trim() !== "");
       if (validInvoices.length === 0) {
         alert("Harap masukkan setidaknya satu nomor invoice.")
         setIsSubmitting(false)
@@ -142,16 +142,26 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
       }
 
       // Check for duplicates within the form
-      const uniqueInvoices = new Set(validInvoices)
-      if (uniqueInvoices.size !== validInvoices.length) {
+      const invoiceNumbers = validInvoices.map(inv => inv.no.trim());
+      const uniqueInvoices = new Set(invoiceNumbers)
+      if (uniqueInvoices.size !== invoiceNumbers.length) {
         alert("Terdapat nomor invoice ganda (duplikat) di dalam form. Harap periksa kembali.")
         setIsSubmitting(false)
         return
       }
+      
+      const invoicesToSubmit = validInvoices.map(inv => ({
+        invoice_no: inv.no.trim(),
+        customer_code: inv.data?.customer_code,
+        customer_name: inv.data?.company_name,
+        customer_address: inv.data?.customer_address,
+        items_summary: inv.data?.items_summary,
+        total_amount: inv.data?.total_amount
+      }));
 
       const result = await createTransaction({
         ...formData,
-        invoices: validInvoices
+        invoices: invoicesToSubmit
       })
 
       if (result && !result.success) {
@@ -299,9 +309,20 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                     )}
                   </div>
                   {inv.status === "success" && inv.data && (
-                    <div className="flex items-center gap-2 text-xs text-green-600 ml-10">
-                      <CheckCircle2 className="h-3 w-3" />
-                      <span>{inv.data.company_name} - Rp {inv.data.total_amount.toLocaleString('id-ID')}</span>
+                    <div className="flex flex-col gap-1 mt-1 text-xs text-green-700 ml-10 p-2 bg-green-50 rounded-md border border-green-100">
+                      <div className="flex items-center gap-2 font-semibold">
+                        <CheckCircle2 className="h-3 w-3" />
+                        <span>{inv.data.customer_code ? `${inv.data.customer_code} - ` : ''}{inv.data.company_name}</span>
+                      </div>
+                      {inv.data.customer_address && (
+                        <div className="text-muted-foreground ml-5 line-clamp-1">{inv.data.customer_address}</div>
+                      )}
+                      {inv.data.items_summary && (
+                        <div className="ml-5 font-medium text-muted-foreground">{inv.data.items_summary}</div>
+                      )}
+                      {inv.data.total_amount > 0 && (
+                        <div className="ml-5 font-semibold">Rp {inv.data.total_amount.toLocaleString('id-ID')}</div>
+                      )}
                     </div>
                   )}
                   {inv.status === "error" && (
