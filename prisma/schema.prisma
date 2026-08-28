@@ -59,7 +59,8 @@ model TransactionInvoice {
   transaction_no   String
   transaction      Transaction @relation(fields: [transaction_no], references: [transaction_no], onDelete: Cascade)
   invoice_no       String      @unique
-  status           String      @default("PENDING") // PENDING, IN_TRANSIT, DELIVERED, CANCELLED
+  status           String      @default("TERKIRIM") // TERKIRIM, RETURNED
+  return_reason    String?
   customer_code    String?
   customer_name    String?
   customer_address String?

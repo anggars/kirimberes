@@ -107,6 +107,19 @@ export async function createTransaction(data: {
   return { success: true }
 }
 
+export async function checkInvoiceGlobalDuplicate(invoice_no: string) {
+  const existing = await prisma.transactionInvoice.findUnique({
+    where: { invoice_no }
+  })
+  if (existing) {
+    return { 
+      isDuplicate: true, 
+      message: `Faktur sudah ada di dalam transaksi ${existing.transaction_no}!` 
+    }
+  }
+  return { isDuplicate: false }
+}
+
 export async function deleteTransaction(transaction_no: string) {
   // First delete associated invoices because of foreign key constraint
   await prisma.transactionInvoice.deleteMany({

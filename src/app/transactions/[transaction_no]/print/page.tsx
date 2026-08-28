@@ -152,7 +152,13 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
                         <>
                           <td className="border border-black px-1 py-0.5" rowSpan={items.length}></td>
                           <td className="border border-black px-1 py-0.5 text-center font-mono text-[10px]" rowSpan={items.length}>{inv?.invoice_no || ""}</td>
-                          <td className="border border-black px-1 py-0.5" rowSpan={items.length}></td>
+                          <td className="border border-black px-1 py-0.5 text-[10px]" rowSpan={items.length}>
+                            {inv?.status === "RETURNED" && (
+                              <div className="text-red-600 font-semibold italic">
+                                Tidak Terkirim: {inv.return_reason || "Retur"}
+                              </div>
+                            )}
+                          </td>
                         </>
                       )}
                     </tr>

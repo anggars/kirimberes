@@ -1,0 +1,82 @@
+"use server"
+
+import prisma from "@/lib/prisma"
+import { revalidatePath } from "next/cache"
+
+export async function searchLocalInvoice(invoice_no: string) {
+  try {
+    // @ts-ignore
+    const existing = await prisma.transactionInvoice.findUnique({
+      where: { invoice_no },
+      include: {
+        transaction: {
+          include: {
+            driver: true,
+            helper: true,
+            vehicle: true
+          }
+        },
+        // @ts-ignore
+        items: true
+      }
+    });
+
+    if (!existing) {
+      return { success: false, error: "Faktur tidak ditemukan di database pengiriman." };
+    }
+
+    if (existing.status === "RETURNED") {
+      // @ts-ignore
+      return { success: false, error: `Faktur sudah diretur dengan alasan: ${existing.return_reason}` };
+    }
+
+    return {
+      success: true,
+      data: {
+        id: existing.id,
+        invoice_no: existing.invoice_no,
+        transaction_no: existing.transaction_no,
+        // @ts-ignore
+        customer_name: existing.customer_name,
+        // @ts-ignore
+        total_amount: existing.total_amount,
+        // @ts-ignore
+        driver_name: existing.transaction.driver.name,
+        // @ts-ignore
+        helper_name: existing.transaction.helper.name,
+        // @ts-ignore
+        vehicle_plate: existing.transaction.vehicle.plate_number,
+        // @ts-ignore
+        items: existing.items,
+        // @ts-ignore
+        items_summary: existing.items_summary
+      }
+    };
+  } catch (error: any) {
+    console.error("Error searching local invoice:", error);
+    return { success: false, error: "Terjadi kesalahan sistem." };
+  }
+}
+
+export async function submitReturn(invoice_no: string, return_reason: string) {
+  try {
+    // @ts-ignore
+    const updated = await prisma.transactionInvoice.update({
+      where: { invoice_no },
+      data: {
+        status: "RETURNED",
+        // @ts-ignore
+        return_reason: return_reason
+      }
+    });
+
+    revalidatePath("/retur");
+    revalidatePath("/transactions");
+    revalidatePath(`/transactions/${updated.transaction_no}`);
+    
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error submitting return:", error);
+    return { success: false, error: "Gagal memproses retur barang." };
+  }
+}

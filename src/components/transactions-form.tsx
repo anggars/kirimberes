@@ -6,7 +6,7 @@ import { Crew, Vehicle } from "@prisma/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { createTransaction } from "@/app/actions"
+import { createTransaction, checkInvoiceGlobalDuplicate } from "@/app/actions"
 import { PlusCircle, Trash2, ArrowLeft, Search, CheckCircle2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { searchSalesInvoice } from "@/app/actions/accurate"
@@ -59,7 +59,7 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     const invoiceNo = currentInput.trim();
     if (!invoiceNo) return;
     
-    // Check duplicates
+    // Check duplicates locally (in current form)
     if (formData.invoices.some(inv => inv.no === invoiceNo)) {
       setInputStatus("error");
       showError("Faktur sudah ada di dalam daftar!");
@@ -70,6 +70,16 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
 
     setInputStatus("loading");
     setInputError("");
+
+    // Check duplicates globally in database
+    const globalCheck = await checkInvoiceGlobalDuplicate(invoiceNo);
+    if (globalCheck.isDuplicate) {
+      setInputStatus("error");
+      showError(globalCheck.message || "Faktur sudah pernah discan!");
+      setCurrentInput("");
+      setTimeout(() => inputRef.current?.focus(), 10);
+      return;
+    }
 
     const res = await searchSalesInvoice(invoiceNo);
     
