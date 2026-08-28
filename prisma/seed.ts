@@ -115,15 +115,19 @@ async function main() {
       for (let k = 0; k < numInvoices; k++) {
         const invNum = `INV-${txDate.getFullYear().toString().slice(-2)}${(txDate.getMonth()+1).toString().padStart(2,'0')}${txDate.getDate().toString().padStart(2,'0')}-${txNum.slice(-1)}-${k+1}`
         
-        const invoice = await prisma.transactionInvoice.upsert({
-          where: { invoice_no: invNum },
-          update: {},
-          create: {
-            transaction_no: transaction.transaction_no,
-            invoice_no: invNum,
-            status: i === 0 ? 'PENDING' : 'DELIVERED', // Today's are pending, past are delivered
-          }
+        let invoice = await prisma.transactionInvoice.findFirst({
+          where: { invoice_no: invNum, transaction_no: transaction.transaction_no }
         })
+
+        if (!invoice) {
+          invoice = await prisma.transactionInvoice.create({
+            data: {
+              transaction_no: transaction.transaction_no,
+              invoice_no: invNum,
+              status: i === 0 ? 'PENDING' : 'DELIVERED',
+            }
+          })
+        }
 
         // Check if history exists
         const existingHistory = await prisma.trackingHistory.findFirst({ where: { invoice_id: invoice.id } })
