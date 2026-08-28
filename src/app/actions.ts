@@ -57,6 +57,7 @@ export async function createTransaction(data: {
     customer_address?: string
     items_summary?: string
     total_amount?: number
+    extracted_items?: { item_name: string; quantity: string }[]
   }[] // Array of detailed invoice objects
 }) {
   const { getSession } = await import("@/lib/session")
@@ -90,7 +91,13 @@ export async function createTransaction(data: {
           customer_name: inv.customer_name,
           customer_address: inv.customer_address,
           items_summary: inv.items_summary,
-          total_amount: inv.total_amount
+          total_amount: inv.total_amount,
+          items: inv.extracted_items && inv.extracted_items.length > 0 ? {
+            create: inv.extracted_items.map(item => ({
+              item_name: item.item_name,
+              quantity: item.quantity
+            }))
+          } : undefined
         })),
       },
     },

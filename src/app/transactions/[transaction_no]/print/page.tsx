@@ -5,13 +5,18 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
   const params = await props.params
   const transaction_no = decodeURIComponent(params.transaction_no)
 
-  const tx = await prisma.transaction.findUnique({
+  const tx: any = await prisma.transaction.findUnique({
     where: { transaction_no },
     include: {
       driver: true,
       helper: true,
       vehicle: true,
-      invoices: true,
+      invoices: {
+        include: {
+          // @ts-ignore
+          items: true
+        }
+      },
       createdByUser: true,
     }
   })
@@ -36,6 +41,20 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
     const matches = summary.match(/\((\d+)\)/g);
     if (!matches) return "";
     return matches.reduce((sum, match) => sum + parseInt(match.replace(/\D/g, '')), 0) || "";
+  }
+
+  const renderItemNames = (inv: any) => {
+    if (inv?.items && inv.items.length > 0) {
+      return inv.items.map((it: any, i: number) => <div key={i}>{it.item_name}</div>);
+    }
+    return inv?.items_summary ? getExtractedItemNames(inv.items_summary) : "";
+  }
+
+  const renderItemQty = (inv: any) => {
+    if (inv?.items && inv.items.length > 0) {
+      return inv.items.map((it: any, i: number) => <div key={i}>{it.quantity}</div>);
+    }
+    return inv?.items_summary ? getExtractedItemQty(inv.items_summary) : "";
   }
 
   return (
@@ -94,9 +113,9 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
               <tr key={idx} className="h-6">
                 <td className="border border-black px-1 py-0.5 text-center">{idx + 1}</td>
                 <td className="border border-black px-1 py-0.5 font-semibold text-[10px] leading-tight">{inv?.customer_name || ""}</td>
-                <td className="border border-black px-1 py-0.5 text-[10px] leading-tight">{inv?.items_summary ? getExtractedItemNames(inv.items_summary) : ""}</td>
+                <td className="border border-black px-1 py-0.5 text-[10px] leading-tight">{renderItemNames(inv)}</td>
                 <td className="border border-black px-1 py-0.5"></td>
-                <td className="border border-black px-1 py-0.5 text-center text-[10px] font-bold">{inv?.items_summary ? getExtractedItemQty(inv.items_summary) : ""}</td>
+                <td className="border border-black px-1 py-0.5 text-center text-[10px] font-bold">{renderItemQty(inv)}</td>
                 <td className="border border-black px-1 py-0.5"></td>
                 <td className="border border-black px-1 py-0.5 text-center font-mono text-[10px]">{inv?.invoice_no || ""}</td>
                 <td className="border border-black px-1 py-0.5"></td>

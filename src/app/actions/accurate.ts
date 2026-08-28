@@ -45,10 +45,16 @@ export async function searchSalesInvoice(invoiceNo: string) {
     
     // Process items
     let items_summary = "";
+    let extracted_items: { item_name: string; quantity: string }[] = [];
     if (invoice.detailItem && Array.isArray(invoice.detailItem)) {
       items_summary = invoice.detailItem.map((item: any) => 
         `${item.item?.name || item.itemName} (${item.quantity || 0})`
       ).join(", ");
+      
+      extracted_items = invoice.detailItem.map((item: any) => ({
+        item_name: item.item?.name || item.itemName || "Unknown Item",
+        quantity: `${item.quantity || 0} ${item.itemUnit?.name || ''}`.trim()
+      }));
     }
     
     return {
@@ -60,7 +66,8 @@ export async function searchSalesInvoice(invoiceNo: string) {
         customer_code: invoice.customer?.customerNo || invoice.customer?.no || "",
         customer_address: invoice.shipTo || invoice.customer?.address || "",
         total_amount: invoice.totalAmount || 0,
-        items_summary
+        items_summary,
+        extracted_items
       }
     };
   } catch (error: any) {
@@ -98,10 +105,16 @@ export async function searchSalesInvoicesAdvanced(keyword: string = "") {
       success: true,
       data: response.d.map((invoice: any) => {
         let items_summary = "";
+        let extracted_items: { item_name: string; quantity: string }[] = [];
         if (invoice.detailItem && Array.isArray(invoice.detailItem)) {
           items_summary = invoice.detailItem.map((item: any) => 
             `${item.item?.name || item.itemName} (${item.quantity || 0})`
           ).join(", ");
+          
+          extracted_items = invoice.detailItem.map((item: any) => ({
+            item_name: item.item?.name || item.itemName || "Unknown Item",
+            quantity: `${item.quantity || 0} ${item.itemUnit?.name || ''}`.trim()
+          }));
         }
 
         return {
@@ -112,7 +125,8 @@ export async function searchSalesInvoicesAdvanced(keyword: string = "") {
           customer_address: invoice.shipTo || invoice.customer?.address || "",
           total_amount: invoice.totalAmount || 0,
           trans_date: invoice.transDate || "",
-          items_summary
+          items_summary,
+          extracted_items
         };
       })
     };

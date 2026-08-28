@@ -67,6 +67,15 @@ model TransactionInvoice {
   total_amount     Float?
 
   trackingHistory TrackingHistory[]
+  items           InvoiceItem[]
+}
+
+model InvoiceItem {
+  id         Int                @id @default(autoincrement())
+  invoice_id Int
+  invoice    TransactionInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
+  item_name  String
+  quantity   String
 }
 
 model TrackingHistory {

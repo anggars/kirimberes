@@ -106,7 +106,8 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
         customer_name: inv.data?.company_name,
         customer_address: inv.data?.customer_address,
         items_summary: inv.data?.items_summary,
-        total_amount: inv.data?.total_amount
+        total_amount: inv.data?.total_amount,
+        extracted_items: inv.data?.extracted_items
       }));
 
       const result = await createTransaction({
@@ -253,7 +254,7 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                       <th className="px-4 py-2 text-left font-medium w-12">No</th>
                       <th className="px-4 py-2 text-left font-medium">No. Faktur</th>
                       <th className="px-4 py-2 text-left font-medium">Pelanggan</th>
-                      <th className="px-4 py-2 text-left font-medium">Total</th>
+                      <th className="px-4 py-2 text-left font-medium">Nama Barang & Qty</th>
                       <th className="px-4 py-2 text-center font-medium w-16">Aksi</th>
                     </tr>
                   </thead>
@@ -264,12 +265,11 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                         <td className="px-4 py-3 font-mono font-medium">{inv.no}</td>
                         <td className="px-4 py-3">
                           <div className="font-medium">{inv.data?.company_name}</div>
-                          <div className="text-xs text-muted-foreground truncate max-w-50 md:max-w-75">
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-xs text-muted-foreground wrap-break-word max-w-50 md:max-w-xs">
                             {inv.data?.items_summary || "-"}
                           </div>
-                        </td>
-                        <td className="px-4 py-3 font-medium">
-                          {inv.data?.total_amount ? `Rp ${inv.data.total_amount.toLocaleString('id-ID')}` : "-"}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <Button 
