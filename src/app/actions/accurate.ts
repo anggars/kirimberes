@@ -51,8 +51,11 @@ export async function searchSalesInvoice(invoiceNo: string) {
         undefined,
         host
       );
-      if (detailResponse.s !== false && detailResponse.d && detailResponse.d.length > 0) {
-        invoice.detailItem = detailResponse.d[0].detailItem;
+      if (detailResponse.s !== false && detailResponse.d) {
+        const detailData = Array.isArray(detailResponse.d) ? detailResponse.d[0] : detailResponse.d;
+        if (detailData && detailData.detailItem) {
+          invoice.detailItem = detailData.detailItem;
+        }
       }
     }
 
