@@ -166,6 +166,34 @@ export async function deleteTransaction(transaction_no: string) {
   revalidatePath("/")
 }
 
+export async function getNextTransactionNumber(dateString: string) {
+  // dateString is "YYYY-MM-DD"
+  const parts = dateString.split('-');
+  if (parts.length !== 3) return "UNKNOWN-01";
+  
+  const prefix = `${parts[2]}${parts[1]}${parts[0]}`; // DDMMYYYY
+  
+  const transactions = await prisma.transaction.findMany({
+    where: { transaction_no: { startsWith: prefix } },
+    select: { transaction_no: true }
+  });
+
+  let maxSeq = 0;
+  for (const t of transactions) {
+    const p = t.transaction_no.split('-');
+    if (p.length === 2) {
+      const seq = parseInt(p[1], 10);
+      if (!isNaN(seq) && seq > maxSeq) {
+        maxSeq = seq;
+      }
+    }
+  }
+
+  const nextSeq = maxSeq + 1;
+  const seqPadded = String(nextSeq).padStart(2, '0');
+  return `${prefix}-${seqPadded}`;
+}
+
 // --- USER ACTIONS (SUPER_USER ONLY) ---
 
 export async function createUser(data: { username: string; password?: string; name: string; role: string }) {

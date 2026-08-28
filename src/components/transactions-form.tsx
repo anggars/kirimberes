@@ -6,7 +6,7 @@ import { Crew, Vehicle } from "@prisma/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { createTransaction, checkInvoiceGlobalDuplicate } from "@/app/actions"
+import { createTransaction, checkInvoiceGlobalDuplicate, getNextTransactionNumber } from "@/app/actions"
 import { PlusCircle, Trash2, ArrowLeft, Search, CheckCircle2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { searchSalesInvoice } from "@/app/actions/accurate"
@@ -36,19 +36,16 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     setErrorTimeout(timeout);
   }
 
-  // Auto-generate transaction number on mount
+  // Auto-generate transaction number on mount and when date changes
   useEffect(() => {
-    const now = new Date()
-    const year = now.getFullYear()
-    const month = String(now.getMonth() + 1).padStart(2, '0')
-    const day = String(now.getDate()).padStart(2, '0')
-    const hours = String(now.getHours()).padStart(2, '0')
-    const minutes = String(now.getMinutes()).padStart(2, '0')
-    const seconds = String(now.getSeconds()).padStart(2, '0')
-    
-    const autoNumber = `TRF-${year}${month}${day}-${hours}${minutes}${seconds}`
-    setFormData(prev => ({ ...prev, transaction_no: autoNumber }))
-  }, [])
+    async function fetchNextNo() {
+      if (formData.transaction_date) {
+        const nextNo = await getNextTransactionNumber(formData.transaction_date);
+        setFormData(prev => ({ ...prev, transaction_no: nextNo }));
+      }
+    }
+    fetchNextNo();
+  }, [formData.transaction_date])
 
   const handleRemoveInvoice = (index: number) => {
     const newInvoices = formData.invoices.filter((_, i) => i !== index)
@@ -174,9 +171,9 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                 required
                 readOnly
                 className="bg-muted font-mono"
-                placeholder="TRF-YYYYMMDD-HHMMSS"
+                placeholder="DDMMYYYY-XX"
                 value={formData.transaction_no}
-                onChange={(e) => setFormData({...formData, transaction_no: e.target.value.toUpperCase()})}
+                onChange={(e) => setFormData({...formData, transaction_no: e.target.value})}
               />
             </div>
             <div className="space-y-2">
