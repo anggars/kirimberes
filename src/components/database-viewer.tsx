@@ -27,7 +27,7 @@ export function DatabaseViewer() {
     
     const res = await getTableData(tableName)
     if (res.success) {
-      setData(res.data)
+      setData(res.data || [])
     } else {
       setError(res.error || "Gagal mengambil data")
       setData([])
