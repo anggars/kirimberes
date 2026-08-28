@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Truck, Users, LayoutDashboard, Moon, Sun, Menu, LogOut, PackageMinus } from "lucide-react"
+import { Truck, Users, LayoutDashboard, Moon, Sun, Menu, LogOut, PackageMinus, Database } from "lucide-react"
 import { useTheme } from "next-themes"
 import { logout } from "@/app/actions/auth"
 
@@ -36,6 +36,7 @@ export function LayoutWrapper({
     { href: "/crews", label: "Data Supir & Kenek", icon: Users, roles: ["ADMIN", "SUPER_USER"] },
     { href: "/vehicles", label: "Data Kendaraan", icon: Truck, roles: ["ADMIN", "SUPER_USER"] },
     { href: "/users", label: "Manajemen Akun", icon: Users, roles: ["SUPER_USER"] },
+    { href: "/database", label: "Manajemen Database", icon: Database, roles: ["SUPER_USER"] },
   ]
 
   const navItems = allNavItems.filter(item => {
