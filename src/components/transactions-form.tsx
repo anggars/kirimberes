@@ -26,7 +26,15 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
   const [currentInput, setCurrentInput] = useState("")
   const [inputStatus, setInputStatus] = useState<"idle" | "loading" | "error">("idle")
   const [inputError, setInputError] = useState("")
+  const [errorTimeout, setErrorTimeout] = useState<NodeJS.Timeout | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const showError = (msg: string) => {
+    setInputError(msg);
+    if (errorTimeout) clearTimeout(errorTimeout);
+    const timeout = setTimeout(() => setInputError(""), 3500);
+    setErrorTimeout(timeout);
+  }
 
   // Auto-generate transaction number on mount
   useEffect(() => {
@@ -54,7 +62,9 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     // Check duplicates
     if (formData.invoices.some(inv => inv.no === invoiceNo)) {
       setInputStatus("error");
-      setInputError("Faktur sudah ada di dalam daftar!");
+      showError("Faktur sudah ada di dalam daftar!");
+      setCurrentInput("");
+      setTimeout(() => inputRef.current?.focus(), 10);
       return;
     }
 
@@ -68,17 +78,18 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
         ...prev, 
         invoices: [...prev.invoices, { no: invoiceNo, data: res.data }] 
       }));
-      setCurrentInput("");
       setInputStatus("idle");
     } else {
       setInputStatus("error");
-      setInputError(res.error || "Gagal verifikasi ke Accurate");
+      showError(res.error || "Gagal verifikasi ke Accurate");
     }
+    
+    setCurrentInput("");
     
     // Keep focus
     setTimeout(() => {
       inputRef.current?.focus();
-    }, 50);
+    }, 10);
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -130,7 +141,7 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
   }
 
   return (
-    <Card className="max-w-3xl">
+    <Card className="max-w-5xl w-full">
       <CardHeader>
         <CardTitle>Detail Manifest</CardTitle>
       </CardHeader>
