@@ -6,8 +6,9 @@ import { createDeliveryOrder } from "./accurate"
 
 export async function getTrackingHistory(invoice_no: string) {
   try {
-    const invoice = await prisma.transactionInvoice.findUnique({
+    const invoice = await prisma.transactionInvoice.findFirst({
       where: { invoice_no },
+      orderBy: { id: "desc" },
       include: {
         transaction: {
           include: {
@@ -45,8 +46,9 @@ export async function updateTrackingStatus(formData: FormData) {
   }
 
   try {
-    const invoice = await prisma.transactionInvoice.findUnique({
+    const invoice = await prisma.transactionInvoice.findFirst({
       where: { invoice_no },
+      orderBy: { id: "desc" },
       include: { transaction: true }
     })
 
