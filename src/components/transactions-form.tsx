@@ -10,6 +10,7 @@ import { createTransaction, checkInvoiceGlobalDuplicate, getNextTransactionNumbe
 import { PlusCircle, Trash2, ArrowLeft, Search, CheckCircle2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { searchSalesInvoice } from "@/app/actions/accurate"
+import { MobileScannerDialog } from "@/components/mobile-scanner-dialog"
 
 export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles: Vehicle[] }) {
   const router = useRouter()
@@ -108,6 +109,55 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     setTimeout(() => {
       inputRef.current?.focus();
     }, 10);
+  }
+
+  const handleScan = (scannedValue: string) => {
+    setCurrentInput(scannedValue);
+    // Use a timeout to allow state to update before verifying
+    setTimeout(() => {
+      // Trigger a form submission simulation or direct verification
+      // We can't call handleVerifyCurrent directly with the new state instantly due to closure, 
+      // so we use a small trick: simulate the verification directly with the value.
+      handleVerifyDirect(scannedValue);
+    }, 100);
+  }
+
+  const handleVerifyDirect = async (invoiceNo: string) => {
+    if (!invoiceNo) return;
+    
+    // Check duplicates locally (in current form)
+    if (formData.invoices.some(inv => inv.no === invoiceNo)) {
+      setInputStatus("error");
+      showError("Faktur sudah ada di dalam daftar!");
+      setCurrentInput("");
+      return;
+    }
+
+    setInputStatus("loading");
+    setInputError("");
+
+    const res = await searchSalesInvoice(invoiceNo);
+    if (!res.success) {
+      setInputStatus("error");
+      showError(res.error || "Gagal verifikasi ke Accurate. Faktur tidak ditemukan!");
+      setCurrentInput("");
+      return;
+    }
+
+    const globalCheck = await checkInvoiceGlobalDuplicate(invoiceNo);
+    if (globalCheck.isDuplicate) {
+      setInputStatus("error");
+      showError(globalCheck.message || "Faktur sudah pernah discan!");
+      setCurrentInput("");
+      return;
+    }
+
+    setFormData(prev => ({ 
+      ...prev, 
+      invoices: [...prev.invoices, { no: invoiceNo, data: res.data }] 
+    }));
+    setInputStatus("idle");
+    setCurrentInput("");
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -244,6 +294,11 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
           <div className="space-y-4 pt-4 border-t">
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-lg">Daftar Invoice / Kargo</h3>
+            </div>
+            
+            {/* MOBILE SCANNER WIDGET */}
+            <div className="block md:hidden mt-2">
+              <MobileScannerDialog onScan={handleScan} />
             </div>
             
             <div className="flex flex-col gap-2 p-4 border rounded-lg bg-muted/20">
