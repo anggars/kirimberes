@@ -79,7 +79,17 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     setInputStatus("loading");
     setInputError("");
 
-    // Check duplicates globally in database
+    // 1. Cek di database Accurate (Sesuai SOP)
+    const res = await searchSalesInvoice(invoiceNo);
+    if (!res.success) {
+      setInputStatus("error");
+      showError(res.error || "Gagal verifikasi ke Accurate. Faktur tidak ditemukan!");
+      setCurrentInput("");
+      setTimeout(() => inputRef.current?.focus(), 10);
+      return;
+    }
+
+    // 2. Cek di tabel TransactionInvoice lokal
     const globalCheck = await checkInvoiceGlobalDuplicate(invoiceNo);
     if (globalCheck.isDuplicate) {
       setInputStatus("error");
@@ -89,18 +99,11 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
       return;
     }
 
-    const res = await searchSalesInvoice(invoiceNo);
-    
-    if (res.success) {
-      setFormData(prev => ({ 
-        ...prev, 
-        invoices: [...prev.invoices, { no: invoiceNo, data: res.data }] 
-      }));
-      setInputStatus("idle");
-    } else {
-      setInputStatus("error");
-      showError(res.error || "Gagal verifikasi ke Accurate");
-    }
+    setFormData(prev => ({ 
+      ...prev, 
+      invoices: [...prev.invoices, { no: invoiceNo, data: res.data }] 
+    }));
+    setInputStatus("idle");
     
     setCurrentInput("");
     

@@ -81,11 +81,14 @@ export async function createTransaction(data: {
     }
   }
 
-  const conflictingInvoices = Array.from(latestInvoices.values()).filter(inv => inv.status !== "RETURNED_FULL")
+  const conflictingInvoices = Array.from(latestInvoices.values()).filter(inv => {
+    const s = inv.status.toLowerCase();
+    return s.includes("picked up") || s === "terkirim" || s === "pending";
+  })
 
   if (conflictingInvoices.length > 0) {
     const duplicates = conflictingInvoices.map((inv) => inv.invoice_no).join(", ")
-    return { success: false, error: `Gagal: Invoice sudah terdaftar di sistem (${duplicates})` }
+    return { success: false, error: `Gagal: Invoice sudah berstatus Picked Up di sistem (${duplicates})` }
   }
 
   await prisma.transaction.create({
@@ -103,6 +106,7 @@ export async function createTransaction(data: {
           customer_name: inv.customer_name,
           customer_address: inv.customer_address,
           total_amount: inv.total_amount,
+          status: "picked up",
           items: {
             create: inv.extracted_items?.map((item: any) => ({
               invoice_no: inv.invoice_no,
@@ -127,18 +131,24 @@ export async function checkInvoiceGlobalDuplicate(invoice_no: string) {
   })
   
   if (existing) {
-    if (existing.status === "RETURNED_FULL") {
-      return { isDuplicate: false }
-    }
-    if (existing.status === "RETURNED_PARTIAL") {
+    const status = existing.status.toLowerCase();
+    
+    // Jika berisikan "picked up", maka ditolak
+    if (status.includes("picked up") || status === "terkirim" || status === "pending") {
       return { 
         isDuplicate: true, 
-        message: `Faktur ini berstatus retur sebagian dan tidak dapat dimasukkan ke manifest baru sebelum direvisi.` 
+        message: `Faktur sudah ada di dalam transaksi ${existing.transaction_no} dengan status Picked Up!` 
       }
     }
+    
+    // Jika berisikan "returned", maka boleh disimpan (return isDuplicate: false)
+    if (status.includes("returned")) {
+      return { isDuplicate: false }
+    }
+    
     return { 
       isDuplicate: true, 
-      message: `Faktur sudah ada di dalam transaksi ${existing.transaction_no}!` 
+      message: `Faktur tidak bisa dimasukkan (Status saat ini: ${existing.status})` 
     }
   }
   return { isDuplicate: false }
