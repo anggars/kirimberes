@@ -43,6 +43,19 @@ export async function searchSalesInvoice(invoiceNo: string) {
 
     const invoice = response.d[0];
     
+    // If list API doesn't return detailItem, fetch full details
+    if (!invoice.detailItem || invoice.detailItem.length === 0) {
+      const detailResponse = await fetchAccurateAPI(
+        `/api/sales-invoice/detail.do?id=${invoice.id}`,
+        "GET",
+        undefined,
+        host
+      );
+      if (detailResponse.s !== false && detailResponse.d && detailResponse.d.length > 0) {
+        invoice.detailItem = detailResponse.d[0].detailItem;
+      }
+    }
+
     // Process items
     let items_summary = "";
     let extracted_items: { item_name: string; quantity: string }[] = [];

@@ -234,8 +234,14 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                   type="button" 
                   onClick={handleVerifyCurrent}
                   disabled={inputStatus === "loading" || !currentInput.trim()}
+                  className="w-32"
                 >
-                  {inputStatus === "loading" ? "Mencari..." : "Tambahkan"}
+                  {inputStatus === "loading" ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-foreground"></div>
+                      Mencari...
+                    </>
+                  ) : "Tambahkan"}
                 </Button>
               </div>
               {inputStatus === "error" && (
@@ -267,8 +273,14 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                           <div className="font-medium">{inv.data?.company_name}</div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="text-xs text-muted-foreground wrap-break-word max-w-50 md:max-w-xs">
-                            {inv.data?.items_summary || "-"}
+                          <div className="text-xs text-muted-foreground wrap-break-word max-w-50 md:max-w-xs space-y-1">
+                            {inv.data?.extracted_items && inv.data.extracted_items.length > 0 ? (
+                              inv.data.extracted_items.map((item: any, i: number) => (
+                                <div key={i}>• {item.item_name} <span className="font-semibold">({item.quantity})</span></div>
+                              ))
+                            ) : (
+                              inv.data?.items_summary || <span className="text-red-400 italic">Data barang kosong</span>
+                            )}
                           </div>
                         </td>
                         <td className="px-4 py-3 text-center">
