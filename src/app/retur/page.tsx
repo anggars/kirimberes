@@ -2,7 +2,9 @@ import { getSession } from "@/lib/session"
 import { redirect } from "next/navigation"
 // @ts-ignore
 import { ReturForm } from "@/components/retur-form"
+import { ReturActions } from "@/components/retur-actions"
 import prisma from "@/lib/prisma"
+import Link from "next/link"
 
 export default async function ReturPage() {
   const session = await getSession()
@@ -62,18 +64,20 @@ export default async function ReturPage() {
                 <tbody className="divide-y">
                   {returnedInvoices.map((inv: any) => (
                     <tr key={inv.id} className="hover:bg-muted/30">
-                      <td className="px-4 py-3 font-mono font-semibold">{inv.invoice_no}</td>
+                      <td className="px-4 py-3 font-mono font-semibold">
+                        <span className="text-primary hover:underline cursor-pointer" title="Klik tombol detail di kolom aksi untuk melihat barang">{inv.invoice_no}</span>
+                      </td>
                       <td className="px-4 py-3">{inv.customer_name || "-"}</td>
                       <td className="px-4 py-3">
-                        <div className="font-mono text-xs">{inv.transaction_no}</div>
+                        <Link href={`/transactions/${inv.transaction_no}/print`} target="_blank" className="font-mono text-xs text-primary hover:underline">
+                          {inv.transaction_no}
+                        </Link>
                         <div className="text-xs text-muted-foreground mt-1">
                           {inv.transaction?.vehicle?.plate_number} • {inv.transaction?.driver?.name}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex items-center px-2 py-1 rounded-md bg-red-100 text-red-700 text-xs font-medium">
-                          {inv.return_reason}
-                        </span>
+                        <ReturActions invoice={inv} />
                       </td>
                     </tr>
                   ))}

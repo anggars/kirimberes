@@ -55,6 +55,14 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     setFormData({ ...formData, invoices: newInvoices })
   }
 
+  const handleQtyChange = (invoiceIndex: number, itemIndex: number, newQty: string) => {
+    const newInvoices = [...formData.invoices];
+    if (newInvoices[invoiceIndex].data.extracted_items) {
+      newInvoices[invoiceIndex].data.extracted_items[itemIndex].quantity = newQty;
+    }
+    setFormData({ ...formData, invoices: newInvoices });
+  }
+
   const handleVerifyCurrent = async () => {
     const invoiceNo = currentInput.trim();
     if (!invoiceNo) return;
@@ -297,7 +305,15 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                           <div className="text-xs text-muted-foreground wrap-break-word max-w-50 md:max-w-xs space-y-1">
                             {inv.data?.extracted_items && inv.data.extracted_items.length > 0 ? (
                               inv.data.extracted_items.map((item: any, i: number) => (
-                                <div key={i}>• {item.item_name} <span className="font-semibold">({item.quantity})</span></div>
+                                <div key={i} className="flex items-center gap-2 mt-1">
+                                  <span className="flex-1">• {item.item_name}</span>
+                                  <Input 
+                                    className="w-24 h-6 text-xs px-2 py-0 text-center font-semibold bg-background" 
+                                    value={item.quantity} 
+                                    onChange={(e) => handleQtyChange(index, i, e.target.value)}
+                                    title="Edit Kuantitas (Bisa diedit jika jumlah fisik berbeda)"
+                                  />
+                                </div>
                               ))
                             ) : (
                               inv.data?.items_summary || <span className="text-red-400 italic">Data barang kosong</span>

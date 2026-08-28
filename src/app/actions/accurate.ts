@@ -73,12 +73,12 @@ export async function searchSalesInvoice(invoiceNo: string) {
     let extracted_items: { item_name: string; quantity: string }[] = [];
     if (invoice.detailItem && Array.isArray(invoice.detailItem)) {
       items_summary = invoice.detailItem.map((item: any) => 
-        `${item.item?.name || item.itemName} (${item.quantity || 0})`
+        `${item.item?.name || item.itemName} (${item.quantity || 0} ${item.itemUnit?.name || item.unitName || ''})`.trim()
       ).join(", ");
       
       extracted_items = invoice.detailItem.map((item: any) => ({
         item_name: item.item?.name || item.itemName || "Unknown Item",
-        quantity: `${item.quantity || 0} ${item.itemUnit?.name || ''}`.trim()
+        quantity: `${item.quantity || 0} ${item.itemUnit?.name || item.unitName || ''}`.trim()
       }));
     }
     
@@ -133,12 +133,12 @@ export async function searchSalesInvoicesAdvanced(keyword: string = "") {
         let extracted_items: { item_name: string; quantity: string }[] = [];
         if (invoice.detailItem && Array.isArray(invoice.detailItem)) {
           items_summary = invoice.detailItem.map((item: any) => 
-            `${item.item?.name || item.itemName} (${item.quantity || 0})`
+            `${item.item?.name || item.itemName} (${item.quantity || 0} ${item.itemUnit?.name || item.unitName || ''})`.trim()
           ).join(", ");
           
           extracted_items = invoice.detailItem.map((item: any) => ({
             item_name: item.item?.name || item.itemName || "Unknown Item",
-            quantity: `${item.quantity || 0} ${item.itemUnit?.name || ''}`.trim()
+            quantity: `${item.quantity || 0} ${item.itemUnit?.name || item.unitName || ''}`.trim()
           }));
         }
 

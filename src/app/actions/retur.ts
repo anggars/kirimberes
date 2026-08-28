@@ -80,3 +80,48 @@ export async function submitReturn(invoice_no: string, return_reason: string) {
     return { success: false, error: "Gagal memproses retur barang." };
   }
 }
+
+export async function updateReturnReason(invoice_no: string, return_reason: string) {
+  try {
+    // @ts-ignore
+    const updated = await prisma.transactionInvoice.update({
+      where: { invoice_no },
+      data: {
+        // @ts-ignore
+        return_reason: return_reason
+      }
+    });
+
+    revalidatePath("/retur");
+    revalidatePath("/transactions");
+    revalidatePath(`/transactions/${updated.transaction_no}`);
+    
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error updating return:", error);
+    return { success: false, error: "Gagal mengubah alasan retur." };
+  }
+}
+
+export async function deleteReturn(invoice_no: string) {
+  try {
+    // @ts-ignore
+    const updated = await prisma.transactionInvoice.update({
+      where: { invoice_no },
+      data: {
+        status: "TERKIRIM",
+        // @ts-ignore
+        return_reason: null
+      }
+    });
+
+    revalidatePath("/retur");
+    revalidatePath("/transactions");
+    revalidatePath(`/transactions/${updated.transaction_no}`);
+    
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error deleting return:", error);
+    return { success: false, error: "Gagal membatalkan retur." };
+  }
+}
