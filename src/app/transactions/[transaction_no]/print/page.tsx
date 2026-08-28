@@ -45,16 +45,43 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
 
   const renderItemNames = (inv: any) => {
     if (inv?.items && inv.items.length > 0) {
-      return inv.items.map((it: any, i: number) => <div key={i}>{it.item_name}</div>);
+      return inv.items.map((it: any, i: number) => (
+        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-[20px] flex items-center">
+          {it.item_name}
+        </div>
+      ));
     }
-    return inv?.items_summary ? getExtractedItemNames(inv.items_summary) : "";
+    
+    if (inv?.items_summary) {
+      const names = inv.items_summary.split(',').map((item: string) => item.split('(')[0].trim());
+      return names.map((name: string, i: number) => (
+        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-[20px] flex items-center">
+          {name}
+        </div>
+      ));
+    }
+    return "";
   }
 
   const renderItemQty = (inv: any) => {
     if (inv?.items && inv.items.length > 0) {
-      return inv.items.map((it: any, i: number) => <div key={i}>{it.quantity}</div>);
+      return inv.items.map((it: any, i: number) => (
+        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-[20px] flex justify-center items-center">
+          {it.quantity}
+        </div>
+      ));
     }
-    return inv?.items_summary ? getExtractedItemQty(inv.items_summary) : "";
+    
+    if (inv?.items_summary) {
+      const matches = inv.items_summary.match(/\((\d+)\)/g);
+      const qtys = matches ? matches.map((match: string) => match.replace(/\D/g, '')) : [];
+      return qtys.map((qty: string, i: number) => (
+        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-[20px] flex justify-center items-center">
+          {qty}
+        </div>
+      ));
+    }
+    return "";
   }
 
   return (
@@ -113,9 +140,17 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
               <tr key={idx} className="h-6">
                 <td className="border border-black px-1 py-0.5 text-center">{idx + 1}</td>
                 <td className="border border-black px-1 py-0.5 font-semibold text-[10px] leading-tight">{inv?.customer_name || ""}</td>
-                <td className="border border-black px-1 py-0.5 text-[10px] leading-tight">{renderItemNames(inv)}</td>
+                <td className="border border-black p-0 align-top">
+                  <div className="flex flex-col h-full text-[10px] leading-tight px-1">
+                    {renderItemNames(inv)}
+                  </div>
+                </td>
                 <td className="border border-black px-1 py-0.5"></td>
-                <td className="border border-black px-1 py-0.5 text-center text-[10px] font-bold">{renderItemQty(inv)}</td>
+                <td className="border border-black p-0 align-top">
+                  <div className="flex flex-col h-full text-[10px] font-bold px-1">
+                    {renderItemQty(inv)}
+                  </div>
+                </td>
                 <td className="border border-black px-1 py-0.5"></td>
                 <td className="border border-black px-1 py-0.5 text-center font-mono text-[10px]">{inv?.invoice_no || ""}</td>
                 <td className="border border-black px-1 py-0.5"></td>
