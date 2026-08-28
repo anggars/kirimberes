@@ -53,8 +53,17 @@ export async function searchSalesInvoice(invoiceNo: string) {
       );
       if (detailResponse.s !== false && detailResponse.d) {
         const detailData = Array.isArray(detailResponse.d) ? detailResponse.d[0] : detailResponse.d;
-        if (detailData && detailData.detailItem) {
-          invoice.detailItem = detailData.detailItem;
+        if (detailData) {
+          if (detailData.detailItem) {
+            invoice.detailItem = detailData.detailItem;
+          }
+          if (detailData.customer) {
+            // Merge in the richer customer object from detail
+            invoice.customer = { ...invoice.customer, ...detailData.customer };
+          }
+          if (detailData.shipTo) {
+            invoice.shipTo = detailData.shipTo;
+          }
         }
       }
     }
@@ -80,7 +89,7 @@ export async function searchSalesInvoice(invoiceNo: string) {
         invoice_no: invoice.number,
         company_name: invoice.customer?.name || "",
         customer_code: invoice.customer?.customerNo || invoice.customer?.no || "",
-        customer_address: invoice.shipTo || invoice.customer?.address || "",
+        customer_address: invoice.shipTo || invoice.customer?.address || invoice.customer?.billStreet || invoice.customer?.shipStreet || "",
         total_amount: invoice.totalAmount || 0,
         items_summary,
         extracted_items
