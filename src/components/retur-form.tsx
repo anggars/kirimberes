@@ -38,12 +38,11 @@ export function ReturForm() {
       setSearchStatus("success")
       setInvoiceData(res.data)
       
-      // Setup itemsData for editing
-      if (res.data.items && res.data.items.length > 0) {
-        setItemsData(res.data.items.map((i: any) => ({ item_name: i.item_name, quantity: i.quantity })))
-      } else if (res.data.items_summary) {
+      if (res.data?.items && res.data?.items.length > 0) {
+        setItemsData(res.data?.items.map((i: any) => ({ item_name: i.item_name, quantity: i.quantity })))
+      } else if (res.data?.items_summary) {
         // Parse legacy string: "Item A (10), Item B (2)"
-        const parsed = res.data.items_summary.split(', ').map((str: string) => {
+        const parsed = res.data?.items_summary.split(', ').map((str: string) => {
           const match = str.match(/(.+?)\s*\((.+?)\)/)
           if (match) {
             return { item_name: match[1].trim(), quantity: match[2].includes('CRT') ? match[2] : `${match[2]} CRT` }
