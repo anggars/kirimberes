@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Truck, Users, LayoutDashboard, Moon, Sun, Menu, LogOut, PackageMinus, Database } from "lucide-react"
+import { Truck, Users, LayoutDashboard, Moon, Sun, Menu, LogOut, PackageMinus, Database, X } from "lucide-react"
 import { useTheme } from "next-themes"
 import { logout } from "@/app/actions/auth"
 
@@ -50,7 +50,7 @@ export function LayoutWrapper({
       <aside
         className={`${
           isMobileMenuOpen ? "fixed inset-y-0 left-0 z-50 flex shadow-2xl" : "hidden"
-        } md:flex md:static md:w-64 w-64 border-r bg-background shrink-0 flex-col`}
+        } md:flex md:static md:w-64 w-full border-r bg-background shrink-0 flex-col`}
       >
         <div className="p-6 border-b flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -63,7 +63,7 @@ export function LayoutWrapper({
             className="md:hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           >
-            <Menu className="h-5 w-5" />
+            <X className="h-5 w-5" />
           </Button>
         </div>
         
@@ -78,6 +78,7 @@ export function LayoutWrapper({
           {navItems.map((item) => (
             <Link key={item.href} href={item.href}>
               <span
+                onClick={() => setIsMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                   pathname === item.href || (pathname.startsWith(item.href) && item.href !== "/")
                     ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
