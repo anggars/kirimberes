@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { getTableData } from "@/app/actions/database"
+import { getTableData, deleteAllTransactions } from "@/app/actions/database"
+import { Trash2 } from "lucide-react"
 
 const TABLES = [
   "User",
@@ -39,6 +40,21 @@ export function DatabaseViewer() {
   useEffect(() => {
     loadData(activeTable)
   }, [activeTable])
+
+  const handleDeleteTransactions = async () => {
+    if (!confirm("PERINGATAN KERAS! Apakah Anda yakin ingin menghapus SEMUA data transaksi secara permanen? Data yang dihapus tidak dapat dikembalikan!")) return;
+    if (!confirm("Apakah Anda benar-benar yakin?")) return;
+    
+    setLoading(true);
+    const res = await deleteAllTransactions();
+    if (res.success) {
+      alert("Semua data transaksi berhasil dihapus.");
+      loadData(activeTable);
+    } else {
+      alert(res.error || "Gagal menghapus data transaksi");
+    }
+    setLoading(false);
+  }
 
   const renderTable = () => {
     if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading data...</div>
@@ -104,7 +120,12 @@ export function DatabaseViewer() {
             {tableName}
           </button>
         ))}
-        <div className="ml-auto px-4 py-2 flex items-center">
+        <div className="ml-auto px-4 py-2 flex items-center gap-2">
+          {activeTable.includes("Transaction") && (
+            <Button variant="destructive" size="sm" onClick={handleDeleteTransactions} disabled={loading}>
+              <Trash2 className="h-4 w-4 mr-1" /> Hapus Semua Transaksi
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={() => loadData(activeTable)} disabled={loading}>
             Refresh
           </Button>

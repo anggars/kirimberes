@@ -19,7 +19,7 @@ export default async function ReturPage() {
   // Fetch returned invoices
   // @ts-ignore
   const returnedInvoices = await prisma.transactionInvoice.findMany({
-    where: { status: "RETURNED" },
+    where: { status: "returned" },
     include: {
       transaction: {
         include: {

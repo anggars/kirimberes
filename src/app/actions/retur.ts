@@ -26,7 +26,7 @@ export async function searchLocalInvoice(invoice_no: string) {
       return { success: false, error: "Faktur tidak ditemukan di database pengiriman." };
     }
 
-    if (existing.status.startsWith("RETURNED")) {
+    if (existing.status.toLowerCase().includes("returned")) {
       // @ts-ignore
       return { success: false, error: `Faktur sudah diretur dengan alasan: ${existing.return_reason}` };
     }
@@ -73,11 +73,10 @@ export async function submitReturn(
     
     if (!existing) throw new Error("Not found");
 
-    // @ts-ignore
-    const updated = await prisma.transactionInvoice.update({
-      where: { id: existing.id },
+    await prisma.transactionInvoice.updateMany({
+      where: { invoice_no: invoice_no },
       data: {
-        status: return_type,
+        status: "returned",
         // @ts-ignore
         return_reason: return_reason
       }
@@ -102,7 +101,7 @@ export async function submitReturn(
 
     revalidatePath("/retur");
     revalidatePath("/transactions");
-    revalidatePath(`/transactions/${updated.transaction_no}`);
+    revalidatePath(`/transactions/${existing.transaction_no}`);
     
     return { success: true };
   } catch (error: any) {
@@ -125,15 +124,14 @@ export async function updateReturnReason(invoice_no: string, return_reason: stri
       updateData.status = return_type;
     }
 
-    // @ts-ignore
-    const updated = await prisma.transactionInvoice.update({
-      where: { id: existing.id },
+    await prisma.transactionInvoice.updateMany({
+      where: { invoice_no },
       data: updateData
     });
 
     revalidatePath("/retur");
     revalidatePath("/transactions");
-    revalidatePath(`/transactions/${updated.transaction_no}`);
+    revalidatePath(`/transactions/${existing.transaction_no}`);
     
     return { success: true };
   } catch (error: any) {
@@ -151,11 +149,10 @@ export async function deleteReturn(invoice_no: string) {
     
     if (!existing) throw new Error("Not found");
 
-    // @ts-ignore
-    const updated = await prisma.transactionInvoice.update({
-      where: { id: existing.id },
+    await prisma.transactionInvoice.updateMany({
+      where: { invoice_no },
       data: {
-        status: "TERKIRIM",
+        status: "picked up",
         // @ts-ignore
         return_reason: null
       }
@@ -163,7 +160,7 @@ export async function deleteReturn(invoice_no: string) {
 
     revalidatePath("/retur");
     revalidatePath("/transactions");
-    revalidatePath(`/transactions/${updated.transaction_no}`);
+    revalidatePath(`/transactions/${existing.transaction_no}`);
     
     return { success: true };
   } catch (error: any) {
