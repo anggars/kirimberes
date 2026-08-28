@@ -105,8 +105,13 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
               items = inv.items.map((it: any) => ({ name: it.item_name, qty: it.quantity }));
             } else if (inv?.items_summary) {
               const names = inv.items_summary.split(',').map((item: string) => item.split('(')[0].trim());
-              const matches = inv.items_summary.match(/\((\d+)\)/g);
-              const qtys = matches ? matches.map((match: string) => match.replace(/\D/g, '')) : [];
+              const matches = inv.items_summary.match(/\((\d+\s*[A-Za-z]*)\)/g) || inv.items_summary.match(/\((\d+)\)/g);
+              const qtys = matches ? matches.map((match: string) => {
+                let val = match.replace(/[()]/g, '').trim();
+                // If it's just a number in old data, append CRT
+                if (/^\d+$/.test(val)) val += " CRT";
+                return val;
+              }) : [];
               items = names.map((name: string, i: number) => ({ name, qty: qtys[i] || "" }));
             }
             
@@ -150,7 +155,9 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
                       
                       {itemIdx === 0 && (
                         <>
-                          <td className="border border-black px-1 py-0.5" rowSpan={items.length}></td>
+                          <td className="border border-black px-1 py-0.5 text-center font-bold text-red-600" rowSpan={items.length}>
+                            {inv?.status === "RETURNED" ? "X" : ""}
+                          </td>
                           <td className="border border-black px-1 py-0.5 text-center font-mono text-[10px]" rowSpan={items.length}>{inv?.invoice_no || ""}</td>
                           <td className="border border-black px-1 py-0.5 text-[10px]" rowSpan={items.length}>
                             {inv?.status === "RETURNED" && (
