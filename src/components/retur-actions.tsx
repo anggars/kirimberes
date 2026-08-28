@@ -73,8 +73,8 @@ export function ReturActions({ invoice }: { invoice: any }) {
               </thead>
               <tbody>
                 ${invoice.items && invoice.items.length > 0 
-                  ? invoice.items.map((it: any, idx: number) => `<tr><td>${idx+1}</td><td>${it.item_name}</td><td>${it.quantity}</td></tr>`).join('') 
-                  : `<tr><td colspan="3">${invoice.items_summary || 'Tidak ada detail'}</td></tr>`
+                  ? invoice.items.map((it: any, idx: number) => `<tr><td>${idx+1}</td><td>${it.item_name}</td><td>${it.qty} ${it.satuan}</td></tr>`).join('') 
+                  : `<tr><td colspan="3"><span class="text-red-400 italic">Data barang kosong</span></td></tr>`
                 }
               </tbody>
             </table>
@@ -160,13 +160,11 @@ export function ReturActions({ invoice }: { invoice: any }) {
                 <div className="bg-muted p-2 rounded text-xs mt-1 space-y-1 max-h-80 overflow-y-auto">
                   {invoice.items && invoice.items.length > 0 ? (
                     invoice.items.map((it: any, i: number) => (
-                      <div key={i}>• {it.item_name} <span className="font-semibold">({it.quantity})</span></div>
+                      <div key={i}>• {it.item_name} <span className="font-semibold">({it.qty} {it.satuan})</span></div>
                     ))
                   ) : (
-                    <div className="whitespace-pre-wrap">
-                      {invoice.items_summary ? invoice.items_summary.split(', ').map((str: string) => {
-                        return str.replace(/\((\d+)\)/, '($1 CRT)');
-                      }).join('\n') : "-"}
+                    <div className="whitespace-pre-wrap text-red-400 italic">
+                      Data barang kosong
                     </div>
                   )}
                 </div>

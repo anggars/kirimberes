@@ -102,14 +102,15 @@ export async function createTransaction(data: {
           customer_code: inv.customer_code,
           customer_name: inv.customer_name,
           customer_address: inv.customer_address,
-          items_summary: inv.items_summary,
           total_amount: inv.total_amount,
-          items: inv.extracted_items && inv.extracted_items.length > 0 ? {
-            create: inv.extracted_items.map(item => ({
+          items: {
+            create: inv.extracted_items?.map((item: any) => ({
+              invoice_no: inv.invoice_no,
               item_name: item.item_name,
-              quantity: item.quantity
-            }))
-          } : undefined
+              qty: Number(item.qty),
+              satuan: item.satuan,
+            })) || [],
+          },
         })),
       },
     },

@@ -58,7 +58,7 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
   const handleQtyChange = (invoiceIndex: number, itemIndex: number, newQty: string) => {
     const newInvoices = [...formData.invoices];
     if (newInvoices[invoiceIndex].data.extracted_items) {
-      newInvoices[invoiceIndex].data.extracted_items[itemIndex].quantity = newQty;
+      newInvoices[invoiceIndex].data.extracted_items[itemIndex].qty = Number(newQty);
     }
     setFormData({ ...formData, invoices: newInvoices });
   }
@@ -134,7 +134,6 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
         customer_code: inv.data?.customer_code,
         customer_name: inv.data?.company_name,
         customer_address: inv.data?.customer_address,
-        items_summary: inv.data?.items_summary,
         total_amount: inv.data?.total_amount,
         extracted_items: inv.data?.extracted_items
       }));
@@ -308,15 +307,17 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                                 <div key={i} className="flex items-center gap-2 mt-1">
                                   <span className="flex-1">• {item.item_name}</span>
                                   <Input 
-                                    className="w-24 h-6 text-xs px-2 py-0 text-center font-semibold bg-background" 
-                                    value={item.quantity} 
+                                    type="number"
+                                    className="w-20 h-6 text-xs px-2 py-0 text-center font-semibold bg-background" 
+                                    value={item.qty} 
                                     onChange={(e) => handleQtyChange(index, i, e.target.value)}
                                     title="Edit Kuantitas (Bisa diedit jika jumlah fisik berbeda)"
                                   />
+                                  <span className="w-12 text-xs font-semibold">{item.satuan}</span>
                                 </div>
                               ))
                             ) : (
-                              inv.data?.items_summary || <span className="text-red-400 italic">Data barang kosong</span>
+                              <span className="text-red-400 italic">Data barang kosong</span>
                             )}
                           </div>
                         </td>

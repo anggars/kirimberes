@@ -32,19 +32,7 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
   const rowsCount = Math.max(minRows, tx.invoices.length);
   const rows = Array.from({ length: rowsCount });
 
-  const getExtractedItemNames = (summary?: string) => {
-    if (!summary) return "";
-    return summary.split(',').map(item => item.split('(')[0].trim()).join(', ');
-  }
-
-  const getExtractedItemQty = (summary?: string) => {
-    if (!summary) return "";
-    const matches = summary.match(/\((\d+)\)/g);
-    if (!matches) return "";
-    return matches.reduce((sum, match) => sum + parseInt(match.replace(/\D/g, '')), 0) || "";
-  }
-
-  // renderItemNames and renderItemQty removed, logic moved to table map
+  // Extracted helper logic removed since we now use items array directly
 
   return (
     <div className="bg-white text-black p-4 md:p-8 max-w-5xl mx-auto min-h-screen font-sans text-xs">
@@ -102,17 +90,10 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
             // Get items for this invoice
             let items: { name: string, qty: string }[] = [];
             if (inv?.items && inv.items.length > 0) {
-              items = inv.items.map((it: any) => ({ name: it.item_name, qty: it.quantity }));
-            } else if (inv?.items_summary) {
-              const names = inv.items_summary.split(',').map((item: string) => item.split('(')[0].trim());
-              const matches = inv.items_summary.match(/\((\d+\s*[A-Za-z]*)\)/g) || inv.items_summary.match(/\((\d+)\)/g);
-              const qtys = matches ? matches.map((match: string) => {
-                let val = match.replace(/[()]/g, '').trim();
-                // If it's just a number in old data, append CRT
-                if (/^\d+$/.test(val)) val += " CRT";
-                return val;
-              }) : [];
-              items = names.map((name: string, i: number) => ({ name, qty: qtys[i] || "" }));
+              items = inv.items.map((it: any) => ({ 
+                name: it.item_name, 
+                qty: `${it.qty} ${it.satuan}` 
+              }));
             }
             
             // If no items, ensure at least one empty item to render the row structure

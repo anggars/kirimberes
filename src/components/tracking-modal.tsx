@@ -93,9 +93,13 @@ export function TrackingModal({ invoice_no }: { invoice_no: string }) {
                 <Package className="h-4 w-4" /> Rincian Barang
               </div>
               <div className="text-sm font-mono whitespace-pre-wrap">
-                {data.items_summary ? data.items_summary.split(', ').map((str: string) => {
-                  return str.replace(/\((\d+)\)/, '($1 CRT)');
-                }).join('\n') : "-"}
+                {data.items && data.items.length > 0 ? (
+                  data.items.map((it: any, i: number) => (
+                    <div key={i}>• {it.item_name} ({it.qty} {it.satuan})</div>
+                  ))
+                ) : (
+                  <span className="text-red-400 italic">Data barang kosong</span>
+                )}
               </div>
             </div>
             

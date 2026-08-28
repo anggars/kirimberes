@@ -48,9 +48,8 @@ export async function searchLocalInvoice(invoice_no: string) {
         // @ts-ignore
         vehicle_plate: existing.transaction.vehicle.plate_number,
         // @ts-ignore
-        items: existing.items,
         // @ts-ignore
-        items_summary: existing.items_summary
+        items: existing.items
       }
     };
   } catch (error: any) {
@@ -63,7 +62,7 @@ export async function submitReturn(
   invoice_no: string, 
   return_reason: string, 
   return_type: "RETURNED_FULL" | "RETURNED_PARTIAL" = "RETURNED_FULL",
-  itemsData?: { item_name: string; quantity: string }[]
+  itemsData?: { item_name: string; qty: number; satuan: string }[]
 ) {
   try {
     // Find the latest record
@@ -95,17 +94,10 @@ export async function submitReturn(
         if (existingItem) {
           await prisma.invoiceItem.update({
             where: { id: existingItem.id },
-            data: { quantity: item.quantity }
+            data: { qty: item.qty, satuan: item.satuan }
           });
         }
       }
-      
-      // Also update items_summary string
-      const newSummary = itemsData.map(i => `${i.item_name} (${i.quantity})`).join(", ");
-      await prisma.transactionInvoice.update({
-        where: { id: existing.id },
-        data: { items_summary: newSummary }
-      });
     }
 
     revalidatePath("/retur");

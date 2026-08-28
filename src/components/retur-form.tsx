@@ -18,7 +18,7 @@ export function ReturForm() {
   const [invoiceData, setInvoiceData] = useState<any>(null)
   const [returnReason, setReturnReason] = useState("")
   const [returnType, setReturnType] = useState<"RETURNED_FULL" | "RETURNED_PARTIAL">("RETURNED_FULL")
-  const [itemsData, setItemsData] = useState<{item_name: string, quantity: string}[]>([])
+  const [itemsData, setItemsData] = useState<{item_name: string, qty: number, satuan: string}[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const inputRef = useRef<HTMLInputElement>(null)
@@ -39,17 +39,7 @@ export function ReturForm() {
       setInvoiceData(res.data)
       
       if (res.data?.items && res.data?.items.length > 0) {
-        setItemsData(res.data?.items.map((i: any) => ({ item_name: i.item_name, quantity: i.quantity })))
-      } else if (res.data?.items_summary) {
-        // Parse legacy string: "Item A (10), Item B (2)"
-        const parsed = res.data?.items_summary.split(', ').map((str: string) => {
-          const match = str.match(/(.+?)\s*\((.+?)\)/)
-          if (match) {
-            return { item_name: match[1].trim(), quantity: match[2].includes('CRT') ? match[2] : `${match[2]} CRT` }
-          }
-          return { item_name: str, quantity: "" }
-        })
-        setItemsData(parsed)
+        setItemsData(res.data?.items.map((i: any) => ({ item_name: i.item_name, qty: i.qty, satuan: i.satuan })))
       } else {
         setItemsData([])
       }
@@ -169,27 +159,29 @@ export function ReturForm() {
                       {itemsData.map((it, i) => (
                         <li key={i} className="flex justify-between items-center gap-2">
                           <div className="flex-1">
-                            • {it.item_name} <span className="font-semibold">({it.quantity})</span>
+                            • {it.item_name} <span className="font-semibold">({it.qty} {it.satuan})</span>
                           </div>
                           {returnType === "RETURNED_PARTIAL" && (
                             <div className="flex items-center gap-2 text-xs text-red-500 font-semibold w-40 justify-end">
                               JADI 
                               <Input 
-                                className="w-20 h-7 text-xs border-red-300 text-center text-red-600 bg-background"
-                                value={it.quantity}
+                                type="number"
+                                className="w-16 h-7 text-xs border-red-300 text-center text-red-600 bg-background"
+                                value={it.qty}
                                 onChange={(e) => {
                                   const newItems = [...itemsData]
-                                  newItems[i].quantity = e.target.value
+                                  newItems[i].qty = Number(e.target.value)
                                   setItemsData(newItems)
                                 }}
                               />
+                              <span className="w-8">{it.satuan}</span>
                             </div>
                           )}
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p>{invoiceData.items_summary || "Detail barang tidak tersedia"}</p>
+                    <p className="text-red-400 italic">Data barang kosong</p>
                   )}
                 </div>
               </div>
