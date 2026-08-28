@@ -59,7 +59,12 @@ export async function searchLocalInvoice(invoice_no: string) {
   }
 }
 
-export async function submitReturn(invoice_no: string, return_reason: string, return_type: "RETURNED_FULL" | "RETURNED_PARTIAL" = "RETURNED_FULL") {
+export async function submitReturn(
+  invoice_no: string, 
+  return_reason: string, 
+  return_type: "RETURNED_FULL" | "RETURNED_PARTIAL" = "RETURNED_FULL",
+  itemsData?: { item_name: string; quantity: string }[]
+) {
   try {
     // Find the latest record
     const existing = await prisma.transactionInvoice.findFirst({
@@ -78,6 +83,30 @@ export async function submitReturn(invoice_no: string, return_reason: string, re
         return_reason: return_reason
       }
     });
+
+    if (itemsData && itemsData.length > 0) {
+      // Update individual items if they exist
+      for (const item of itemsData) {
+        // Find existing item
+        const existingItem = await prisma.invoiceItem.findFirst({
+          where: { invoice_id: existing.id, item_name: item.item_name }
+        });
+        
+        if (existingItem) {
+          await prisma.invoiceItem.update({
+            where: { id: existingItem.id },
+            data: { quantity: item.quantity }
+          });
+        }
+      }
+      
+      // Also update items_summary string
+      const newSummary = itemsData.map(i => `${i.item_name} (${i.quantity})`).join(", ");
+      await prisma.transactionInvoice.update({
+        where: { id: existing.id },
+        data: { items_summary: newSummary }
+      });
+    }
 
     revalidatePath("/retur");
     revalidatePath("/transactions");

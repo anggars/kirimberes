@@ -18,6 +18,7 @@ export function ReturForm() {
   const [invoiceData, setInvoiceData] = useState<any>(null)
   const [returnReason, setReturnReason] = useState("")
   const [returnType, setReturnType] = useState<"RETURNED_FULL" | "RETURNED_PARTIAL">("RETURNED_FULL")
+  const [itemsData, setItemsData] = useState<{item_name: string, quantity: string}[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const inputRef = useRef<HTMLInputElement>(null)
@@ -36,6 +37,23 @@ export function ReturForm() {
     if (res.success) {
       setSearchStatus("success")
       setInvoiceData(res.data)
+      
+      // Setup itemsData for editing
+      if (res.data.items && res.data.items.length > 0) {
+        setItemsData(res.data.items.map((i: any) => ({ item_name: i.item_name, quantity: i.quantity })))
+      } else if (res.data.items_summary) {
+        // Parse legacy string: "Item A (10), Item B (2)"
+        const parsed = res.data.items_summary.split(', ').map((str: string) => {
+          const match = str.match(/(.+?)\s*\((.+?)\)/)
+          if (match) {
+            return { item_name: match[1].trim(), quantity: match[2].includes('CRT') ? match[2] : `${match[2]} CRT` }
+          }
+          return { item_name: str, quantity: "" }
+        })
+        setItemsData(parsed)
+      } else {
+        setItemsData([])
+      }
     } else {
       setSearchStatus("error")
       setSearchMessage(res.error || "Gagal menemukan faktur.")
@@ -54,7 +72,12 @@ export function ReturForm() {
     if (!invoiceData || !returnReason.trim()) return
 
     setIsSubmitting(true)
-    const res = await submitReturn(invoiceData.invoice_no, returnReason, returnType)
+    const res = await submitReturn(
+      invoiceData.invoice_no, 
+      returnReason, 
+      returnType,
+      returnType === "RETURNED_PARTIAL" ? itemsData : undefined
+    )
     
     if (res.success) {
       alert("Retur berhasil dicatat.")
@@ -135,12 +158,35 @@ export function ReturForm() {
               </div>
 
               <div className="pt-2 border-t">
-                <p className="text-muted-foreground text-sm mb-2">Rincian Barang:</p>
+                <div className="flex justify-between items-end mb-2">
+                  <p className="text-muted-foreground text-sm">Rincian Barang:</p>
+                  {returnType === "RETURNED_PARTIAL" && itemsData.length > 0 && (
+                    <p className="text-xs font-semibold text-muted-foreground mr-1">UPDATE QTY BARU</p>
+                  )}
+                </div>
                 <div className="text-sm p-3 bg-muted/30 rounded-md">
-                  {invoiceData.items && invoiceData.items.length > 0 ? (
-                    <ul className="space-y-1">
-                      {invoiceData.items.map((it: any, i: number) => (
-                        <li key={i}>• {it.item_name} <span className="font-semibold">({it.quantity})</span></li>
+                  {itemsData.length > 0 ? (
+                    <ul className="space-y-3">
+                      {itemsData.map((it, i) => (
+                        <li key={i} className="flex justify-between items-center gap-2">
+                          <div className="flex-1">
+                            • {it.item_name} <span className="font-semibold">({it.quantity})</span>
+                          </div>
+                          {returnType === "RETURNED_PARTIAL" && (
+                            <div className="flex items-center gap-2 text-xs text-red-500 font-semibold w-40 justify-end">
+                              JADI 
+                              <Input 
+                                className="w-20 h-7 text-xs border-red-300 text-center text-red-600 bg-background"
+                                value={it.quantity}
+                                onChange={(e) => {
+                                  const newItems = [...itemsData]
+                                  newItems[i].quantity = e.target.value
+                                  setItemsData(newItems)
+                                }}
+                              />
+                            </div>
+                          )}
+                        </li>
                       ))}
                     </ul>
                   ) : (
