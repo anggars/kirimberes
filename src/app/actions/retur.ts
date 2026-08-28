@@ -73,14 +73,26 @@ export async function submitReturn(
     
     if (!existing) throw new Error("Not found");
 
-    await prisma.transactionInvoice.updateMany({
-      where: { invoice_no: invoice_no },
-      data: {
-        status: "returned",
-        // @ts-ignore
-        return_reason: return_reason
-      }
-    });
+    if (return_type === "RETURNED_FULL") {
+      await prisma.transactionInvoice.updateMany({
+        where: { invoice_no: invoice_no },
+        data: {
+          status: "returned",
+          // @ts-ignore
+          return_reason: return_reason
+        }
+      });
+    } else {
+      // Retur Sebagian: JANGAN update status (biarkan "picked up" atau status aslinya)
+      // hanya update alasan retur dan QTY barang di bawah
+      await prisma.transactionInvoice.updateMany({
+        where: { invoice_no: invoice_no },
+        data: {
+          // @ts-ignore
+          return_reason: return_reason
+        }
+      });
+    }
 
     if (itemsData && itemsData.length > 0) {
       // Update individual items if they exist
