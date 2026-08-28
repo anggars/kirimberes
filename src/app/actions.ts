@@ -64,15 +64,27 @@ export async function createTransaction(data: {
   const session = await getSession()
   
   // Check for duplicate invoices in the database
+  // Only block if the LATEST record is not RETURNED_FULL
   const invoiceNos = data.invoices.map(i => i.invoice_no)
   const existingInvoices = await prisma.transactionInvoice.findMany({
     where: {
       invoice_no: { in: invoiceNos }
-    }
+    },
+    orderBy: { id: "desc" }
   })
 
-  if (existingInvoices.length > 0) {
-    const duplicates = existingInvoices.map((inv) => inv.invoice_no).join(", ")
+  // Group by invoice_no to get only the latest for each
+  const latestInvoices = new Map();
+  for (const inv of existingInvoices) {
+    if (!latestInvoices.has(inv.invoice_no)) {
+      latestInvoices.set(inv.invoice_no, inv);
+    }
+  }
+
+  const conflictingInvoices = Array.from(latestInvoices.values()).filter(inv => inv.status !== "RETURNED_FULL")
+
+  if (conflictingInvoices.length > 0) {
+    const duplicates = conflictingInvoices.map((inv) => inv.invoice_no).join(", ")
     return { success: false, error: `Gagal: Invoice sudah terdaftar di sistem (${duplicates})` }
   }
 
