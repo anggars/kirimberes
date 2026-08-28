@@ -6,8 +6,9 @@ import { revalidatePath } from "next/cache"
 export async function searchLocalInvoice(invoice_no: string) {
   try {
     // @ts-ignore
-    const existing = await prisma.transactionInvoice.findUnique({
+    const existing = await prisma.transactionInvoice.findFirst({
       where: { invoice_no },
+      orderBy: { id: "desc" },
       include: {
         transaction: {
           include: {
@@ -25,7 +26,7 @@ export async function searchLocalInvoice(invoice_no: string) {
       return { success: false, error: "Faktur tidak ditemukan di database pengiriman." };
     }
 
-    if (existing.status === "RETURNED") {
+    if (existing.status.startsWith("RETURNED")) {
       // @ts-ignore
       return { success: false, error: `Faktur sudah diretur dengan alasan: ${existing.return_reason}` };
     }
@@ -58,13 +59,21 @@ export async function searchLocalInvoice(invoice_no: string) {
   }
 }
 
-export async function submitReturn(invoice_no: string, return_reason: string) {
+export async function submitReturn(invoice_no: string, return_reason: string, return_type: "RETURNED_FULL" | "RETURNED_PARTIAL" = "RETURNED_FULL") {
   try {
+    // Find the latest record
+    const existing = await prisma.transactionInvoice.findFirst({
+      where: { invoice_no },
+      orderBy: { id: "desc" }
+    });
+    
+    if (!existing) throw new Error("Not found");
+
     // @ts-ignore
     const updated = await prisma.transactionInvoice.update({
-      where: { invoice_no },
+      where: { id: existing.id },
       data: {
-        status: "RETURNED",
+        status: return_type,
         // @ts-ignore
         return_reason: return_reason
       }
@@ -81,15 +90,24 @@ export async function submitReturn(invoice_no: string, return_reason: string) {
   }
 }
 
-export async function updateReturnReason(invoice_no: string, return_reason: string) {
+export async function updateReturnReason(invoice_no: string, return_reason: string, return_type?: "RETURNED_FULL" | "RETURNED_PARTIAL") {
   try {
+    const existing = await prisma.transactionInvoice.findFirst({
+      where: { invoice_no },
+      orderBy: { id: "desc" }
+    });
+    
+    if (!existing) throw new Error("Not found");
+    
+    const updateData: any = { return_reason };
+    if (return_type) {
+      updateData.status = return_type;
+    }
+
     // @ts-ignore
     const updated = await prisma.transactionInvoice.update({
-      where: { invoice_no },
-      data: {
-        // @ts-ignore
-        return_reason: return_reason
-      }
+      where: { id: existing.id },
+      data: updateData
     });
 
     revalidatePath("/retur");
@@ -105,9 +123,16 @@ export async function updateReturnReason(invoice_no: string, return_reason: stri
 
 export async function deleteReturn(invoice_no: string) {
   try {
+    const existing = await prisma.transactionInvoice.findFirst({
+      where: { invoice_no },
+      orderBy: { id: "desc" }
+    });
+    
+    if (!existing) throw new Error("Not found");
+
     // @ts-ignore
     const updated = await prisma.transactionInvoice.update({
-      where: { invoice_no },
+      where: { id: existing.id },
       data: {
         status: "TERKIRIM",
         // @ts-ignore

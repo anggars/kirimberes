@@ -17,6 +17,7 @@ export function ReturForm() {
   
   const [invoiceData, setInvoiceData] = useState<any>(null)
   const [returnReason, setReturnReason] = useState("")
+  const [returnType, setReturnType] = useState<"RETURNED_FULL" | "RETURNED_PARTIAL">("RETURNED_FULL")
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const inputRef = useRef<HTMLInputElement>(null)
@@ -53,7 +54,7 @@ export function ReturForm() {
     if (!invoiceData || !returnReason.trim()) return
 
     setIsSubmitting(true)
-    const res = await submitReturn(invoiceData.invoice_no, returnReason)
+    const res = await submitReturn(invoiceData.invoice_no, returnReason, returnType)
     
     if (res.success) {
       alert("Retur berhasil dicatat.")
@@ -148,15 +149,50 @@ export function ReturForm() {
                 </div>
               </div>
 
-              <div className="pt-2 border-t space-y-2">
-                <label className="text-sm font-medium text-red-600">Alasan Retur / Tidak Terkirim *</label>
-                <Input 
-                  required
-                  placeholder="Contoh: Toko tutup, barang rusak, ditolak penerima, dll."
-                  value={returnReason}
-                  onChange={(e) => setReturnReason(e.target.value)}
-                  className="border-red-200 focus-visible:ring-red-500"
-                />
+              <div className="pt-2 border-t space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Jenis Retur *</label>
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input 
+                        type="radio" 
+                        name="return_type" 
+                        value="RETURNED_FULL" 
+                        checked={returnType === "RETURNED_FULL"}
+                        onChange={() => setReturnType("RETURNED_FULL")}
+                        className="accent-primary"
+                      />
+                      Retur Full (Seluruh Barang)
+                    </label>
+                    <label className="flex items-center gap-2 text-sm cursor-pointer">
+                      <input 
+                        type="radio" 
+                        name="return_type" 
+                        value="RETURNED_PARTIAL" 
+                        checked={returnType === "RETURNED_PARTIAL"}
+                        onChange={() => setReturnType("RETURNED_PARTIAL")}
+                        className="accent-primary"
+                      />
+                      Retur Sebagian
+                    </label>
+                  </div>
+                  {returnType === "RETURNED_FULL" ? (
+                    <p className="text-xs text-muted-foreground">Faktur ini dapat dijadwalkan ulang ke manifest baru.</p>
+                  ) : (
+                    <p className="text-xs text-orange-500">Faktur ini tidak dapat masuk ke manifest baru sebelum direvisi.</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-red-600">Alasan Retur / Tidak Terkirim *</label>
+                  <Input 
+                    required
+                    placeholder="Contoh: Toko tutup, barang rusak, ditolak penerima, dll."
+                    value={returnReason}
+                    onChange={(e) => setReturnReason(e.target.value)}
+                    className="border-red-200 focus-visible:ring-red-500"
+                  />
+                </div>
               </div>
 
               <div className="pt-4 flex justify-end gap-3">

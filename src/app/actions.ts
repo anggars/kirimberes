@@ -108,10 +108,21 @@ export async function createTransaction(data: {
 }
 
 export async function checkInvoiceGlobalDuplicate(invoice_no: string) {
-  const existing = await prisma.transactionInvoice.findUnique({
-    where: { invoice_no }
+  const existing = await prisma.transactionInvoice.findFirst({
+    where: { invoice_no },
+    orderBy: { id: "desc" }
   })
+  
   if (existing) {
+    if (existing.status === "RETURNED_FULL") {
+      return { isDuplicate: false }
+    }
+    if (existing.status === "RETURNED_PARTIAL") {
+      return { 
+        isDuplicate: true, 
+        message: `Faktur ini berstatus retur sebagian dan tidak dapat dimasukkan ke manifest baru sebelum direvisi.` 
+      }
+    }
     return { 
       isDuplicate: true, 
       message: `Faktur sudah ada di dalam transaksi ${existing.transaction_no}!` 

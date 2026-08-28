@@ -8,13 +8,14 @@ import { Trash2, Edit, Printer, FileText, X } from "lucide-react"
 export function ReturActions({ invoice }: { invoice: any }) {
   const [isEditing, setIsEditing] = useState(false)
   const [reason, setReason] = useState(invoice.return_reason || "")
+  const [type, setType] = useState<"RETURNED_FULL" | "RETURNED_PARTIAL">(invoice.status === "RETURNED_PARTIAL" ? "RETURNED_PARTIAL" : "RETURNED_FULL")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showDetail, setShowDetail] = useState(false)
 
   const handleEdit = async () => {
     if (!reason.trim()) return
     setIsSubmitting(true)
-    const res = await updateReturnReason(invoice.invoice_no, reason)
+    const res = await updateReturnReason(invoice.invoice_no, reason, type)
     setIsSubmitting(false)
     if (res.success) {
       setIsEditing(false)
@@ -103,6 +104,14 @@ export function ReturActions({ invoice }: { invoice: any }) {
     <div className="flex items-center gap-2">
       {isEditing ? (
         <div className="flex items-center gap-1">
+          <select 
+            className="border text-xs px-1 py-1 rounded bg-background w-24"
+            value={type}
+            onChange={(e) => setType(e.target.value as any)}
+          >
+            <option value="RETURNED_FULL">Full</option>
+            <option value="RETURNED_PARTIAL">Parsial</option>
+          </select>
           <input 
             className="border text-xs px-2 py-1 rounded w-32" 
             value={reason} 
@@ -114,8 +123,8 @@ export function ReturActions({ invoice }: { invoice: any }) {
         </div>
       ) : (
         <>
-          <span className="inline-flex items-center px-2 py-1 rounded-md bg-red-100 text-red-700 text-xs font-medium mr-2 max-w-40 truncate" title={invoice.return_reason}>
-            {invoice.return_reason}
+          <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium mr-2 max-w-40 truncate ${invoice.status === 'RETURNED_PARTIAL' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}`} title={invoice.return_reason}>
+            {invoice.status === 'RETURNED_PARTIAL' ? '(Parsial) ' : ''}{invoice.return_reason}
           </span>
           <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-blue-600 hover:bg-blue-50" onClick={() => setIsEditing(true)} title="Edit Alasan">
             <Edit className="h-3.5 w-3.5" />

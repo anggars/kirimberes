@@ -58,7 +58,7 @@ model TransactionInvoice {
   id               Int         @id @default(autoincrement())
   transaction_no   String
   transaction      Transaction @relation(fields: [transaction_no], references: [transaction_no], onDelete: Cascade)
-  invoice_no       String      @unique
+  invoice_no       String
   status           String      @default("TERKIRIM") // TERKIRIM, RETURNED
   return_reason    String?
   customer_code    String?
