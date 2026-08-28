@@ -163,7 +163,11 @@ export function ReturActions({ invoice }: { invoice: any }) {
                       <div key={i}>• {it.item_name} <span className="font-semibold">({it.quantity})</span></div>
                     ))
                   ) : (
-                    <div>{invoice.items_summary}</div>
+                    <div className="whitespace-pre-wrap">
+                      {invoice.items_summary ? invoice.items_summary.split(', ').map((str: string) => {
+                        return str.replace(/\((\d+)\)/, '($1 CRT)');
+                      }).join('\n') : "-"}
+                    </div>
                   )}
                 </div>
               </div>
