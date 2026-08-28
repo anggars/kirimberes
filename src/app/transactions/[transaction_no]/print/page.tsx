@@ -46,7 +46,7 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
   const renderItemNames = (inv: any) => {
     if (inv?.items && inv.items.length > 0) {
       return inv.items.map((it: any, i: number) => (
-        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-[20px] flex items-center">
+        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-5 flex items-center">
           {it.item_name}
         </div>
       ));
@@ -55,7 +55,7 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
     if (inv?.items_summary) {
       const names = inv.items_summary.split(',').map((item: string) => item.split('(')[0].trim());
       return names.map((name: string, i: number) => (
-        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-[20px] flex items-center">
+        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-5 flex items-center">
           {name}
         </div>
       ));
@@ -66,7 +66,7 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
   const renderItemQty = (inv: any) => {
     if (inv?.items && inv.items.length > 0) {
       return inv.items.map((it: any, i: number) => (
-        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-[20px] flex justify-center items-center">
+        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-5 flex justify-center items-center">
           {it.quantity}
         </div>
       ));
@@ -76,7 +76,7 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
       const matches = inv.items_summary.match(/\((\d+)\)/g);
       const qtys = matches ? matches.map((match: string) => match.replace(/\D/g, '')) : [];
       return qtys.map((qty: string, i: number) => (
-        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-[20px] flex justify-center items-center">
+        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-5 flex justify-center items-center">
           {qty}
         </div>
       ));
