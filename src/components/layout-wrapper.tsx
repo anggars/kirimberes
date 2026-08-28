@@ -49,8 +49,8 @@ export function LayoutWrapper({
       {/* Sidebar */}
       <aside
         className={`${
-          isMobileMenuOpen ? "block" : "hidden"
-        } md:block w-64 border-r bg-card/50 backdrop-blur shrink-0 flex flex-col`}
+          isMobileMenuOpen ? "fixed inset-y-0 left-0 z-50 flex shadow-2xl" : "hidden"
+        } md:flex md:static md:w-64 w-64 border-r bg-background shrink-0 flex-col`}
       >
         <div className="p-6 border-b flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -139,6 +139,13 @@ export function LayoutWrapper({
           {children}
         </div>
       </main>
+      {/* Overlay for mobile */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
     </div>
   )
 }
