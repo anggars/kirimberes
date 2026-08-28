@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma"
 import { notFound } from "next/navigation"
+import React from "react"
 
 export default async function PrintTransactionPage(props: { params: Promise<{ transaction_no: string }> }) {
   const params = await props.params
@@ -43,46 +44,7 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
     return matches.reduce((sum, match) => sum + parseInt(match.replace(/\D/g, '')), 0) || "";
   }
 
-  const renderItemNames = (inv: any) => {
-    if (inv?.items && inv.items.length > 0) {
-      return inv.items.map((it: any, i: number) => (
-        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-5 flex items-center">
-          {it.item_name}
-        </div>
-      ));
-    }
-    
-    if (inv?.items_summary) {
-      const names = inv.items_summary.split(',').map((item: string) => item.split('(')[0].trim());
-      return names.map((name: string, i: number) => (
-        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-5 flex items-center">
-          {name}
-        </div>
-      ));
-    }
-    return "";
-  }
-
-  const renderItemQty = (inv: any) => {
-    if (inv?.items && inv.items.length > 0) {
-      return inv.items.map((it: any, i: number) => (
-        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-5 flex justify-center items-center">
-          {it.quantity}
-        </div>
-      ));
-    }
-    
-    if (inv?.items_summary) {
-      const matches = inv.items_summary.match(/\((\d+)\)/g);
-      const qtys = matches ? matches.map((match: string) => match.replace(/\D/g, '')) : [];
-      return qtys.map((qty: string, i: number) => (
-        <div key={i} className="border-b border-black/30 last:border-0 py-0.5 min-h-5 flex justify-center items-center">
-          {qty}
-        </div>
-      ));
-    }
-    return "";
-  }
+  // renderItemNames and renderItemQty removed, logic moved to table map
 
   return (
     <div className="bg-white text-black p-4 md:p-8 max-w-5xl mx-auto min-h-screen font-sans text-xs">
@@ -136,25 +98,67 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
         <tbody>
           {rows.map((_, idx) => {
             const inv = tx.invoices[idx] as any;
+            
+            // Get items for this invoice
+            let items: { name: string, qty: string }[] = [];
+            if (inv?.items && inv.items.length > 0) {
+              items = inv.items.map((it: any) => ({ name: it.item_name, qty: it.quantity }));
+            } else if (inv?.items_summary) {
+              const names = inv.items_summary.split(',').map((item: string) => item.split('(')[0].trim());
+              const matches = inv.items_summary.match(/\((\d+)\)/g);
+              const qtys = matches ? matches.map((match: string) => match.replace(/\D/g, '')) : [];
+              items = names.map((name: string, i: number) => ({ name, qty: qtys[i] || "" }));
+            }
+            
+            // If no items, ensure at least one empty item to render the row structure
+            if (items.length === 0) {
+              items = [{ name: "", qty: "" }];
+            }
+
             return (
-              <tr key={idx} className="h-6">
-                <td className="border border-black px-1 py-0.5 text-center">{idx + 1}</td>
-                <td className="border border-black px-1 py-0.5 font-semibold text-[10px] leading-tight">{inv?.customer_name || ""}</td>
-                <td className="border border-black p-0 align-top">
-                  <div className="flex flex-col h-full text-[10px] leading-tight px-1">
-                    {renderItemNames(inv)}
-                  </div>
-                </td>
-                <td className="border border-black px-1 py-0.5"></td>
-                <td className="border border-black p-0 align-top">
-                  <div className="flex flex-col h-full text-[10px] font-bold px-1">
-                    {renderItemQty(inv)}
-                  </div>
-                </td>
-                <td className="border border-black px-1 py-0.5"></td>
-                <td className="border border-black px-1 py-0.5 text-center font-mono text-[10px]">{inv?.invoice_no || ""}</td>
-                <td className="border border-black px-1 py-0.5"></td>
-              </tr>
+              <React.Fragment key={idx}>
+                {items.map((item, itemIdx) => {
+                  const isNotLastItem = itemIdx !== items.length - 1;
+                  const borderBottomStyle = isNotLastItem ? 'rgba(0,0,0,0.3)' : 'black';
+                  
+                  return (
+                    <tr key={`${idx}-${itemIdx}`} className="h-6">
+                      {itemIdx === 0 && (
+                        <>
+                          <td className="border border-black px-1 py-0.5 text-center" rowSpan={items.length}>{idx + 1}</td>
+                          <td className="border border-black px-1 py-0.5 font-semibold text-[10px] leading-tight" rowSpan={items.length}>{inv?.customer_name || ""}</td>
+                        </>
+                      )}
+                      
+                      <td 
+                        className="border border-black px-1 py-0.5 text-[10px] leading-tight" 
+                        style={{ borderBottomColor: borderBottomStyle }}
+                      >
+                        {item.name}
+                      </td>
+                      
+                      {itemIdx === 0 && (
+                        <td className="border border-black px-1 py-0.5" rowSpan={items.length}></td>
+                      )}
+                      
+                      <td 
+                        className="border border-black px-1 py-0.5 text-center text-[10px] font-bold"
+                        style={{ borderBottomColor: borderBottomStyle }}
+                      >
+                        {item.qty}
+                      </td>
+                      
+                      {itemIdx === 0 && (
+                        <>
+                          <td className="border border-black px-1 py-0.5" rowSpan={items.length}></td>
+                          <td className="border border-black px-1 py-0.5 text-center font-mono text-[10px]" rowSpan={items.length}>{inv?.invoice_no || ""}</td>
+                          <td className="border border-black px-1 py-0.5" rowSpan={items.length}></td>
+                        </>
+                      )}
+                    </tr>
+                  );
+                })}
+              </React.Fragment>
             )
           })}
         </tbody>
