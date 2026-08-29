@@ -52,6 +52,8 @@ model Transaction {
 
   created_by     String?
   createdByUser  User?    @relation(fields: [created_by], references: [id])
+
+  retur_transaksi ReturTransaksi[]
 }
 
 model TransactionInvoice {
