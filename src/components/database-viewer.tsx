@@ -12,8 +12,7 @@ const TABLES = [
   "Vehicle",
   "Transaction",
   "TransactionInvoice",
-  "InvoiceItem",
-  "TrackingHistory"
+  "InvoiceItem"
 ]
 
 export function DatabaseViewer() {

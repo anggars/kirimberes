@@ -75,7 +75,7 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
           <tr>
             <th className="border border-black px-1 py-1 text-center w-8">No.</th>
             <th className="border border-black px-1 py-1 text-center w-52">Nama Perusahaan</th>
-            <th className="border border-black px-1 py-1 text-center w-52">Nama Barang</th>
+            <th className="border border-black px-1 py-1 text-center w-52">Nama Barang & QTY</th>
             <th className="border border-black px-1 py-1 text-center w-16">Biaya<br/>Parkir</th>
             <th className="border border-black px-1 py-1 text-center w-16">Total Yg<br/>Dibawa</th>
             <th className="border border-black px-1 py-1 text-center w-16">Total Yg<br/>Diterima</th>
@@ -120,7 +120,7 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
                         className="border border-black px-1 py-0.5 text-[10px] leading-tight" 
                         style={{ borderBottomColor: borderBottomStyle }}
                       >
-                        {item.name}
+                        {item.name} {item.qty && `(${item.qty})`}
                       </td>
                       
                       {itemIdx === 0 && (
