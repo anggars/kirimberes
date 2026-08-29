@@ -20,8 +20,7 @@ export default async function ReturPage() {
     include: {
       manifest: {
         include: { driver: true, vehicle: true }
-      },
-      invoice: true
+      }
     },
     orderBy: { created_at: "desc" }
   });
