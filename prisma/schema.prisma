@@ -95,3 +95,31 @@ model TrackingHistory {
   lng         Float?
   timestamp   DateTime @default(now())
 }
+
+model ReturTransaksi {
+  nomer_retur_pengiriman String   @id
+  nomer_faktur           String
+  nomer_piked_up         String
+  tanggal_faktur_acc     DateTime
+  alasan_retur           String
+  jenis_retur            String   // FULL or SEBAGIAN
+  created_at             DateTime @default(now())
+
+  // Relations
+  manifest Transaction       @relation(fields: [nomer_piked_up], references: [transaction_no])
+
+  rincian RincianRetur[]
+}
+
+model RincianRetur {
+  id                     Int            @id @default(autoincrement())
+  nomer_retur_pengiriman String
+  nomer_faktur           String
+  nomer_piked_up         String
+  nama_barang            String
+  qty                    Float
+  satuan                 String
+
+  // Relations
+  retur ReturTransaksi @relation(fields: [nomer_retur_pengiriman], references: [nomer_retur_pengiriman], onDelete: Cascade)
+}

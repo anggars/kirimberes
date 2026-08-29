@@ -17,24 +17,15 @@ export default async function ReturPage() {
   }
 
   // Fetch returned invoices
-  // @ts-ignore
-  const returnedInvoices = await prisma.transactionInvoice.findMany({
-    where: {
-      OR: [
-        { status: "returned" },
-        { return_reason: { not: null } }
-      ]
-    },
+  const riwayatRetur = await prisma.returTransaksi.findMany({
     include: {
-      transaction: {
-        include: {
-          driver: true,
-          vehicle: true
-        }
-      }
+      manifest: {
+        include: { driver: true, vehicle: true }
+      },
+      invoice: true
     },
-    orderBy: { id: "desc" }
-  })
+    orderBy: { created_at: "desc" }
+  });
 
   return (
     <div className="space-y-6">
@@ -50,7 +41,7 @@ export default async function ReturPage() {
       <div className="pt-8">
         <h2 className="text-xl font-bold mb-4">Riwayat Retur / Tidak Terkirim</h2>
         
-        {returnedInvoices.length === 0 ? (
+        {riwayatRetur.length === 0 ? (
           <div className="text-center p-8 bg-card rounded-lg border border-dashed text-muted-foreground">
             Belum ada riwayat retur pengiriman.
           </div>
@@ -60,30 +51,32 @@ export default async function ReturPage() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-muted/50 border-b">
                   <tr>
+                    <th className="px-4 py-3 font-medium">No. Retur</th>
                     <th className="px-4 py-3 font-medium">No. Faktur</th>
-                    <th className="px-4 py-3 font-medium">Pelanggan</th>
                     <th className="px-4 py-3 font-medium">Manifest & Supir</th>
+                    <th className="px-4 py-3 font-medium">Jenis</th>
                     <th className="px-4 py-3 font-medium text-red-600">Alasan Retur</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
-                  {returnedInvoices.map((inv: any) => (
-                    <tr key={inv.id} className="hover:bg-muted/30">
-                      <td className="px-4 py-3 font-mono font-semibold">
-                        <span className="text-primary hover:underline cursor-pointer" title="Klik tombol detail di kolom aksi untuk melihat barang">{inv.invoice_no}</span>
-                      </td>
-                      <td className="px-4 py-3">{inv.customer_name || "-"}</td>
+                  {riwayatRetur.map((ret: any) => (
+                    <tr key={ret.nomer_retur_pengiriman} className="hover:bg-muted/30">
+                      <td className="px-4 py-3 font-mono font-bold">{ret.nomer_retur_pengiriman}</td>
+                      <td className="px-4 py-3 font-mono font-semibold text-primary">{ret.nomer_faktur}</td>
                       <td className="px-4 py-3">
-                        <Link href={`/transactions/${inv.transaction_no}/print`} target="_blank" className="font-mono text-xs text-primary hover:underline">
-                          {inv.transaction_no}
+                        <Link href={`/transactions/${ret.nomer_piked_up}/print`} target="_blank" className="font-mono text-xs text-primary hover:underline">
+                          {ret.nomer_piked_up}
                         </Link>
                         <div className="text-xs text-muted-foreground mt-1">
-                          {inv.transaction?.vehicle?.plate_number} • {inv.transaction?.driver?.name}
+                          {ret.manifest?.vehicle?.plate_number} • {ret.manifest?.driver?.name}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <ReturActions invoice={inv} />
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${ret.jenis_retur === 'FULL' ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+                          {ret.jenis_retur}
+                        </span>
                       </td>
+                      <td className="px-4 py-3">{ret.alasan_retur}</td>
                     </tr>
                   ))}
                 </tbody>

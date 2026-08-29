@@ -3,9 +3,48 @@
 import prisma from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 
+export async function generateReturnNumber(): Promise<string> {
+  const date = new Date();
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  const dateString = `${day}${month}${year}`;
+  const prefix = `RET_${dateString}/`;
+
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+  
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const lastRetur = await prisma.returTransaksi.findFirst({
+    where: {
+      created_at: {
+        gte: startOfDay,
+        lte: endOfDay,
+      }
+    },
+    orderBy: {
+      nomer_retur_pengiriman: 'desc'
+    }
+  });
+
+  let nextNumber = 1;
+  if (lastRetur) {
+    const parts = lastRetur.nomer_retur_pengiriman.split('/');
+    if (parts.length > 1) {
+      const lastNum = parseInt(parts[1], 10);
+      if (!isNaN(lastNum)) {
+        nextNumber = lastNum + 1;
+      }
+    }
+  }
+
+  return `${prefix}${String(nextNumber).padStart(2, '0')}`;
+}
+
 export async function searchLocalInvoice(invoice_no: string) {
   try {
-    // @ts-ignore
     const existing = await prisma.transactionInvoice.findFirst({
       where: { invoice_no },
       orderBy: { id: "desc" },
@@ -17,7 +56,6 @@ export async function searchLocalInvoice(invoice_no: string) {
             vehicle: true
           }
         },
-        // @ts-ignore
         items: true
       }
     });
@@ -26,9 +64,8 @@ export async function searchLocalInvoice(invoice_no: string) {
       return { success: false, error: "Faktur tidak ditemukan di database pengiriman." };
     }
 
-    if (existing.status.toLowerCase().includes("returned")) {
-      // @ts-ignore
-      return { success: false, error: `Faktur sudah diretur dengan alasan: ${existing.return_reason}` };
+    if (existing.status.toLowerCase().includes("returned") || existing.status === "RETURNED_FULL") {
+      return { success: false, error: `Faktur sudah diretur dengan alasan: ${existing.return_reason || "Retur Full"}` };
     }
 
     return {
@@ -37,18 +74,11 @@ export async function searchLocalInvoice(invoice_no: string) {
         id: existing.id,
         invoice_no: existing.invoice_no,
         transaction_no: existing.transaction_no,
-        // @ts-ignore
         customer_name: existing.customer_name,
-        // @ts-ignore
         total_amount: existing.total_amount,
-        // @ts-ignore
         driver_name: existing.transaction.driver.name,
-        // @ts-ignore
         helper_name: existing.transaction.helper.name,
-        // @ts-ignore
         vehicle_plate: existing.transaction.vehicle.plate_number,
-        // @ts-ignore
-        // @ts-ignore
         items: existing.items
       }
     };
@@ -61,122 +91,84 @@ export async function searchLocalInvoice(invoice_no: string) {
 export async function submitReturn(
   invoice_no: string, 
   return_reason: string, 
-  return_type: "RETURNED_FULL" | "RETURNED_PARTIAL" = "RETURNED_FULL",
+  return_type: "FULL" | "SEBAGIAN" = "FULL",
   itemsData?: { item_name: string; qty: number; satuan: string }[]
 ) {
   try {
-    // Find the latest record
     const existing = await prisma.transactionInvoice.findFirst({
       where: { invoice_no },
-      orderBy: { id: "desc" }
+      orderBy: { id: "desc" },
+      include: { items: true }
     });
     
-    if (!existing) throw new Error("Not found");
+    if (!existing) throw new Error("Faktur tidak ditemukan");
 
-    if (return_type === "RETURNED_FULL") {
-      await prisma.transactionInvoice.updateMany({
-        where: { invoice_no: invoice_no },
-        data: {
-          status: "returned",
-          // @ts-ignore
-          return_reason: return_reason
-        }
-      });
-    } else {
-      // Retur Sebagian: JANGAN update status (biarkan "picked up" atau status aslinya)
-      // hanya update alasan retur dan QTY barang di bawah
-      await prisma.transactionInvoice.updateMany({
-        where: { invoice_no: invoice_no },
-        data: {
-          // @ts-ignore
-          return_reason: return_reason
-        }
-      });
+    // Check if it's already returned
+    if (existing.status === "RETURNED_FULL" || existing.status === "RETURNED") {
+        return { success: false, error: "Faktur ini sudah di retur full sebelumnya." };
     }
 
-    if (itemsData && itemsData.length > 0) {
-      // Update individual items if they exist
-      for (const item of itemsData) {
-        // Find existing item
-        const existingItem = await prisma.invoiceItem.findFirst({
-          where: { invoice_id: existing.id, item_name: item.item_name }
+    // Generate Return Number
+    const nomer_retur_pengiriman = await generateReturnNumber();
+
+    // Begin Transaction
+    await prisma.$transaction(async (tx) => {
+      // 1. Create ReturTransaksi
+      await tx.returTransaksi.create({
+        data: {
+          nomer_retur_pengiriman,
+          nomer_faktur: existing.invoice_no,
+          nomer_piked_up: existing.transaction_no,
+          tanggal_faktur_acc: new Date(), // using current date
+          alasan_retur: return_reason,
+          jenis_retur: return_type
+        }
+      });
+
+      // 2. Create RincianRetur (Items)
+      const itemsToSave = (itemsData && itemsData.length > 0) ? itemsData : existing.items;
+      
+      if (itemsToSave && itemsToSave.length > 0) {
+        await tx.rincianRetur.createMany({
+          data: itemsToSave.map(item => ({
+            nomer_retur_pengiriman,
+            nomer_faktur: existing.invoice_no,
+            nomer_piked_up: existing.transaction_no,
+            nama_barang: item.item_name || item.item_name,
+            qty: item.qty,
+            satuan: item.satuan || "PCS"
+          }))
         });
-        
-        if (existingItem) {
-          await prisma.invoiceItem.update({
-            where: { id: existingItem.id },
-            data: { qty: item.qty, satuan: item.satuan }
-          });
-        }
       }
-    }
+
+      // 3. Update TransactionInvoice Status if FULL
+      if (return_type === "FULL") {
+        await tx.transactionInvoice.updateMany({
+          where: { invoice_no: invoice_no },
+          data: {
+            status: "RETURNED",
+            return_reason: return_reason
+          }
+        });
+      } else {
+        // If SEBAGIAN, update return_reason and status to RETURNED_PARTIAL
+        await tx.transactionInvoice.updateMany({
+          where: { invoice_no: invoice_no },
+          data: {
+            status: "RETURNED_PARTIAL",
+            return_reason: return_reason
+          }
+        });
+      }
+    });
 
     revalidatePath("/retur");
     revalidatePath("/transactions");
     revalidatePath(`/transactions/${existing.transaction_no}`);
     
-    return { success: true };
+    return { success: true, nomer_retur_pengiriman };
   } catch (error: any) {
     console.error("Error submitting return:", error);
-    return { success: false, error: "Gagal memproses retur barang." };
-  }
-}
-
-export async function updateReturnReason(invoice_no: string, return_reason: string, return_type?: "RETURNED_FULL" | "RETURNED_PARTIAL") {
-  try {
-    const existing = await prisma.transactionInvoice.findFirst({
-      where: { invoice_no },
-      orderBy: { id: "desc" }
-    });
-    
-    if (!existing) throw new Error("Not found");
-    
-    const updateData: any = { return_reason };
-    if (return_type) {
-      updateData.status = return_type;
-    }
-
-    await prisma.transactionInvoice.updateMany({
-      where: { invoice_no },
-      data: updateData
-    });
-
-    revalidatePath("/retur");
-    revalidatePath("/transactions");
-    revalidatePath(`/transactions/${existing.transaction_no}`);
-    
-    return { success: true };
-  } catch (error: any) {
-    console.error("Error updating return:", error);
-    return { success: false, error: "Gagal mengubah alasan retur." };
-  }
-}
-
-export async function deleteReturn(invoice_no: string) {
-  try {
-    const existing = await prisma.transactionInvoice.findFirst({
-      where: { invoice_no },
-      orderBy: { id: "desc" }
-    });
-    
-    if (!existing) throw new Error("Not found");
-
-    await prisma.transactionInvoice.updateMany({
-      where: { invoice_no },
-      data: {
-        status: "picked up",
-        // @ts-ignore
-        return_reason: null
-      }
-    });
-
-    revalidatePath("/retur");
-    revalidatePath("/transactions");
-    revalidatePath(`/transactions/${existing.transaction_no}`);
-    
-    return { success: true };
-  } catch (error: any) {
-    console.error("Error deleting return:", error);
-    return { success: false, error: "Gagal membatalkan retur." };
+    return { success: false, error: "Gagal memproses retur barang: " + (error.message || "") };
   }
 }

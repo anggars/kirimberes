@@ -17,7 +17,7 @@ export function ReturForm() {
   
   const [invoiceData, setInvoiceData] = useState<any>(null)
   const [returnReason, setReturnReason] = useState("")
-  const [returnType, setReturnType] = useState<"RETURNED_FULL" | "RETURNED_PARTIAL">("RETURNED_FULL")
+  const [returnType, setReturnType] = useState<"FULL" | "SEBAGIAN">("FULL")
   const [itemsData, setItemsData] = useState<{item_name: string, qty: number, satuan: string}[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   
@@ -65,7 +65,7 @@ export function ReturForm() {
       invoiceData.invoice_no, 
       returnReason, 
       returnType,
-      returnType === "RETURNED_PARTIAL" ? itemsData : undefined
+      returnType === "SEBAGIAN" ? itemsData : undefined
     )
     
     if (res.success) {
@@ -149,7 +149,7 @@ export function ReturForm() {
               <div className="pt-2 border-t">
                 <div className="flex justify-between items-end mb-2">
                   <p className="text-muted-foreground text-sm">Rincian Barang:</p>
-                  {returnType === "RETURNED_PARTIAL" && itemsData.length > 0 && (
+                  {returnType === "SEBAGIAN" && itemsData.length > 0 && (
                     <p className="text-xs font-semibold text-muted-foreground mr-1">UPDATE QTY BARU</p>
                   )}
                 </div>
@@ -161,7 +161,7 @@ export function ReturForm() {
                           <div className="flex-1">
                             • {it.item_name} <span className="font-semibold">({it.qty} {it.satuan})</span>
                           </div>
-                          {returnType === "RETURNED_PARTIAL" && (
+                          {returnType === "SEBAGIAN" && (
                             <div className="flex items-center gap-2 text-xs text-red-500 font-semibold w-40 justify-end">
                               JADI 
                               <Input 
@@ -194,9 +194,9 @@ export function ReturForm() {
                       <input 
                         type="radio" 
                         name="return_type" 
-                        value="RETURNED_FULL" 
-                        checked={returnType === "RETURNED_FULL"}
-                        onChange={() => setReturnType("RETURNED_FULL")}
+                        value="FULL" 
+                        checked={returnType === "FULL"}
+                        onChange={() => setReturnType("FULL")}
                         className="accent-primary"
                       />
                       Retur Full (Seluruh Barang)
@@ -205,15 +205,15 @@ export function ReturForm() {
                       <input 
                         type="radio" 
                         name="return_type" 
-                        value="RETURNED_PARTIAL" 
-                        checked={returnType === "RETURNED_PARTIAL"}
-                        onChange={() => setReturnType("RETURNED_PARTIAL")}
+                        value="SEBAGIAN" 
+                        checked={returnType === "SEBAGIAN"}
+                        onChange={() => setReturnType("SEBAGIAN")}
                         className="accent-primary"
                       />
                       Retur Sebagian
                     </label>
                   </div>
-                  {returnType === "RETURNED_FULL" ? (
+                  {returnType === "FULL" ? (
                     <p className="text-xs text-muted-foreground">Faktur ini dapat dijadwalkan ulang ke manifest baru.</p>
                   ) : (
                     <p className="text-xs text-orange-500">Faktur ini tidak dapat masuk ke manifest baru sebelum direvisi.</p>
