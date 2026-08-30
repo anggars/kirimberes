@@ -27,7 +27,7 @@ export async function searchSalesInvoice(invoiceNo: string) {
     // Using accurate's list API with a filter for the invoice number
     // We add more fields to capture customer info and item names
     const response = await fetchAccurateAPI(
-      `/api/sales-invoice/list.do?fields=id,number,customer,totalAmount,shipTo,detailItem&filter.number.op=EQUAL&filter.number.val=${encodeURIComponent(invoiceNo)}`,
+      `/api/sales-invoice/list.do?fields=id,number,customer,totalAmount,shipTo,toAddress,detailItem,detailItems&filter.number.op=EQUAL&filter.number.val=${encodeURIComponent(invoiceNo)}`,
       "GET",
       undefined,
       host
@@ -61,8 +61,8 @@ export async function searchSalesInvoice(invoiceNo: string) {
             // Merge in the richer customer object from detail
             invoice.customer = { ...invoice.customer, ...detailData.customer };
           }
-          if (detailData.shipTo) {
-            invoice.shipTo = detailData.shipTo;
+          if (detailData.shipTo || detailData.toAddress) {
+            invoice.shipTo = detailData.shipTo || detailData.toAddress;
           }
         }
       }
@@ -70,8 +70,9 @@ export async function searchSalesInvoice(invoiceNo: string) {
 
     // Process items
     let extracted_items: { item_name: string; qty: number; satuan: string }[] = [];
-    if (invoice.detailItem && Array.isArray(invoice.detailItem)) {
-      extracted_items = invoice.detailItem.map((item: any) => ({
+    if ((invoice.detailItem || invoice.detailItems) && Array.isArray(invoice.detailItem || invoice.detailItems)) {
+      const itemsList = invoice.detailItem || invoice.detailItems;
+      extracted_items = itemsList.map((item: any) => ({
         item_name: item.item?.name || item.itemName || "Unknown Item",
         qty: Number(item.quantity) || 1,
         satuan: item.itemUnit?.name || item.unitName || "PCS"
@@ -85,7 +86,7 @@ export async function searchSalesInvoice(invoiceNo: string) {
         invoice_no: invoice.number,
         company_name: invoice.customer?.name || "",
         customer_code: invoice.customer?.customerNo || invoice.customer?.no || "",
-        customer_address: invoice.shipTo || invoice.customer?.address || invoice.customer?.billStreet || invoice.customer?.shipStreet || "",
+        customer_address: invoice.toAddress || invoice.shipTo || invoice.customer?.address || invoice.customer?.billStreet || invoice.customer?.shipStreet || "-",
         total_amount: invoice.totalAmount || 0,
         extracted_items
       }
@@ -105,7 +106,7 @@ export async function searchSalesInvoicesAdvanced(keyword: string = "") {
     
     // Using accurate's list API with a generic 'keywords' parameter or customer filter
     // If accurate doesn't support 'keywords', we might need to filter by customer name or number
-    let url = `/api/sales-invoice/list.do?fields=id,number,customer,totalAmount,transDate,shipTo,detailItem`;
+    let url = `/api/sales-invoice/list.do?fields=id,number,customer,totalAmount,transDate,shipTo,toAddress,detailItem,detailItems`;
     if (keyword) {
       // Filtering by number containing keyword (LIKE)
       url += `&filter.number.op=LIKE&filter.number.val=%${encodeURIComponent(keyword)}%`;
@@ -138,7 +139,7 @@ export async function searchSalesInvoicesAdvanced(keyword: string = "") {
           invoice_no: invoice.number,
           company_name: invoice.customer?.name || "",
           customer_code: invoice.customer?.customerNo || invoice.customer?.no || "",
-          customer_address: invoice.shipTo || invoice.customer?.address || "",
+          customer_address: invoice.toAddress || invoice.shipTo || invoice.customer?.address || "-",
           total_amount: invoice.totalAmount || 0,
           trans_date: invoice.transDate || "",
           extracted_items

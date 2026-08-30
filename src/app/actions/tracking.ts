@@ -19,7 +19,8 @@ export async function getTrackingHistory(invoice_no: string) {
         },
         trackingHistory: {
           orderBy: { timestamp: 'desc' }
-        }
+        },
+        items: true
       }
     })
 
