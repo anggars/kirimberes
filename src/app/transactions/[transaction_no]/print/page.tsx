@@ -88,17 +88,18 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
             const inv = tx.invoices[idx] as any;
             
             // Get items for this invoice
-            let items: { name: string, qty: string }[] = [];
+            let items: { name: string, qty: string, original_qty: string }[] = [];
             if (inv?.items && inv.items.length > 0) {
               items = inv.items.map((it: any) => ({ 
                 name: it.item_name, 
-                qty: `${it.qty} ${it.satuan}` 
+                qty: `${it.qty} ${it.satuan}`,
+                original_qty: `${it.original_qty ?? it.qty} ${it.satuan}` 
               }));
             }
             
             // If no items, ensure at least one empty item to render the row structure
             if (items.length === 0) {
-              items = [{ name: "", qty: "" }];
+              items = [{ name: "", qty: "", original_qty: "" }];
             }
 
             return (
@@ -120,7 +121,7 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
                         className="border border-black px-1 py-0.5 text-[10px] leading-tight" 
                         style={{ borderBottomColor: borderBottomStyle }}
                       >
-                        {item.name} {item.qty && `(${item.qty})`}
+                        {item.name} {item.original_qty && `(${item.original_qty})`}
                       </td>
                       
                       {itemIdx === 0 && (

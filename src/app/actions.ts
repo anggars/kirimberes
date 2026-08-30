@@ -112,6 +112,7 @@ export async function createTransaction(data: {
               invoice_no: inv.invoice_no,
               item_name: item.item_name,
               qty: Number(item.qty),
+              original_qty: Number(item.original_qty || item.qty),
               satuan: item.satuan,
             })) || [],
           },

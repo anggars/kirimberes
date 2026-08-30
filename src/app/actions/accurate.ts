@@ -69,12 +69,13 @@ export async function searchSalesInvoice(invoiceNo: string) {
     }
 
     // Process items
-    let extracted_items: { item_name: string; qty: number; satuan: string }[] = [];
+    let extracted_items: { item_name: string; qty: number; original_qty: number; satuan: string }[] = [];
     if ((invoice.detailItem || invoice.detailItems) && Array.isArray(invoice.detailItem || invoice.detailItems)) {
       const itemsList = invoice.detailItem || invoice.detailItems;
       extracted_items = itemsList.map((item: any) => ({
         item_name: item.item?.name || item.itemName || "Unknown Item",
         qty: Number(item.quantity) || 1,
+        original_qty: Number(item.quantity) || 1,
         satuan: item.itemUnit?.name || item.unitName || "PCS"
       }));
     }
@@ -125,11 +126,12 @@ export async function searchSalesInvoicesAdvanced(keyword: string = "") {
     return {
       success: true,
       data: response.d.map((invoice: any) => {
-        let extracted_items: { item_name: string; qty: number; satuan: string }[] = [];
+        let extracted_items: { item_name: string; qty: number; original_qty: number; satuan: string }[] = [];
         if (invoice.detailItem && Array.isArray(invoice.detailItem)) {
           extracted_items = invoice.detailItem.map((item: any) => ({
             item_name: item.item?.name || item.itemName || "Unknown Item",
             qty: Number(item.quantity) || 1,
+            original_qty: Number(item.quantity) || 1,
             satuan: item.itemUnit?.name || item.unitName || "PCS"
           }));
         }

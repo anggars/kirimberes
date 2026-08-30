@@ -77,9 +77,10 @@ model InvoiceItem {
   invoice_id Int
   invoice    TransactionInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
   invoice_no String             @default("")
-  item_name  String
-  qty        Float              @default(1)
-  satuan     String             @default("PCS") // Contoh: 'CRT', 'PCS', 'LTR', 'KG', 'PACK', 'DUS'
+  item_name    String
+  qty          Float              @default(1)
+  original_qty Float              @default(1)
+  satuan       String             @default("PCS") // Contoh: 'CRT', 'PCS', 'LTR', 'KG', 'PACK', 'DUS'
 
   @@index([invoice_no])
   @@index([invoice_id])

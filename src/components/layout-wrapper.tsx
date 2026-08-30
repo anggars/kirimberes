@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Truck, Users, LayoutDashboard, Moon, Sun, Menu, LogOut, PackageMinus, Database, X } from "lucide-react"
+import { Truck, Users, LayoutDashboard, Moon, Sun, Menu, LogOut, PackageMinus, Database, X, ClipboardCheck } from "lucide-react"
 import { useTheme } from "next-themes"
 import { logout } from "@/app/actions/auth"
 
@@ -31,6 +31,7 @@ export function LayoutWrapper({
 
   const allNavItems = [
     { href: "/", label: "Beranda", icon: LayoutDashboard, roles: ["ADMIN", "SUPER_USER"] },
+    { href: "/serah-terima", label: "Serah Terima Faktur", icon: ClipboardCheck, roles: ["USER", "ADMIN", "SUPER_USER"] },
     { href: "/transactions", label: "Manifest Pengiriman", icon: Truck, roles: ["USER", "ADMIN", "SUPER_USER"] },
     { href: "/retur", label: "Retur Pengiriman", icon: PackageMinus, roles: ["ADMIN", "SUPER_USER"] },
     { href: "/crews", label: "Data Supir & Kenek", icon: Users, roles: ["ADMIN", "SUPER_USER"] },
