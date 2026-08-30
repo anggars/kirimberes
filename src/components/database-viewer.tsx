@@ -7,16 +7,17 @@ import { getTableData, deleteAllTransactions } from "@/app/actions/database"
 import { Trash2 } from "lucide-react"
 
 const TABLES = [
-  "User",
-  "Crew",
-  "Vehicle",
-  "Transaction",
-  "TransactionInvoice",
-  "InvoiceItem"
+  { id: "User", name: "Pengguna (User)" },
+  { id: "Crew", name: "Kru (Supir/Kenek)" },
+  { id: "Vehicle", name: "Kendaraan" },
+  { id: "Manifest_Pengiriman", name: "Manifest Pengiriman" },
+  { id: "TransactionInvoice", name: "Faktur (Invoice)" },
+  { id: "InvoiceItem", name: "Rincian Barang" },
+  { id: "ReturTransaksi", name: "Retur Transaksi" }
 ]
 
 export function DatabaseViewer() {
-  const [activeTable, setActiveTable] = useState(TABLES[0])
+  const [activeTable, setActiveTable] = useState(TABLES[0].id)
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -106,17 +107,17 @@ export function DatabaseViewer() {
   return (
     <Card className="shadow-sm">
       <div className="flex border-b overflow-x-auto">
-        {TABLES.map(tableName => (
+        {TABLES.map(table => (
           <button
-            key={tableName}
-            onClick={() => setActiveTable(tableName)}
+            key={table.id}
+            onClick={() => setActiveTable(table.id)}
             className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
-              activeTable === tableName 
+              activeTable === table.id 
                 ? "border-b-2 border-primary text-primary" 
                 : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
             }`}
           >
-            {tableName}
+            {table.name}
           </button>
         ))}
         <div className="ml-auto px-4 py-2 flex items-center gap-2">
