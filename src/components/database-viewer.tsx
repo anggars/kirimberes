@@ -7,7 +7,7 @@ import { getTableData, deleteAllTransactions } from "@/app/actions/database"
 import { Trash2 } from "lucide-react"
 
 const TABLES = [
-  { id: "User", name: "Pengguna (User)" },
+  { id: "User", name: "User" },
   { id: "Crew", name: "Kru (Supir/Kenek)" },
   { id: "Vehicle", name: "Kendaraan" },
   { id: "Manifest_Pengiriman", name: "Manifest Pengiriman" },
