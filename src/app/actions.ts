@@ -63,6 +63,16 @@ export async function createTransaction(data: {
   const { getSession } = await import("@/lib/session")
   const session = await getSession()
   
+  let validUserId: string | undefined = undefined;
+  if (session?.id) {
+    const userExists = await prisma.user.findUnique({ where: { id: session.id } });
+    if (userExists) {
+      validUserId = session.id;
+    } else {
+      return { success: false, error: "Sesi login Anda sudah usang (database baru saja direset). Silakan Logout dan Login kembali." }
+    }
+  }
+  
   // Check for duplicate invoices in the database
   // Only block if the LATEST record is not RETURNED_FULL
   const invoiceNos = data.invoices.map(i => i.no_faktur)
@@ -98,7 +108,7 @@ export async function createTransaction(data: {
       id_supir: data.id_supir,
       id_kenek: data.id_kenek,
       plat_kendaraan: data.plat_kendaraan,
-      dibuat_oleh: session?.id,
+      dibuat_oleh: validUserId,
       invoices: {
         create: data.invoices.map((inv) => ({ 
           no_faktur: inv.no_faktur,
