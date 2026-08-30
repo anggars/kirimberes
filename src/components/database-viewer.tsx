@@ -7,12 +7,12 @@ import { getTableData, deleteAllTransactions } from "@/app/actions/database"
 import { Trash2 } from "lucide-react"
 
 const TABLES = [
-  { id: "User", name: "User", columns: ["id", "username", "password", "role", "name"] },
-  { id: "Crew", name: "Kru (Supir/Kenek)", columns: ["id", "name", "gender", "address"] },
-  { id: "Vehicle", name: "Kendaraan", columns: ["plate_number", "vehicle_name", "brand"] },
-  { id: "Manifest_Pengiriman", name: "Manifest Pengiriman", columns: ["no_pengiriman", "transaction_date", "driver_id", "helper_id", "vehicle_plate", "created_by"] },
-  { id: "TransactionInvoice", name: "Faktur (Invoice)", columns: ["id", "no_pengiriman", "invoice_no", "status", "return_reason", "customer_code", "customer_name", "customer_address", "total_amount"] },
-  { id: "InvoiceItem", name: "Rincian Barang", columns: ["id", "invoice_id", "invoice_no", "item_name", "qty", "original_qty", "satuan"] },
+  { id: "User", name: "User", columns: ["id", "username", "password", "peran", "nama"] },
+  { id: "Kru", name: "Kru (Supir/Kenek)", columns: ["id", "nama", "jenis_kelamin", "alamat"] },
+  { id: "Kendaraan", name: "Kendaraan", columns: ["plat_nomor", "nama_kendaraan", "merek"] },
+  { id: "Manifest_Pengiriman", name: "Manifest Pengiriman", columns: ["no_pengiriman", "tanggal_transaksi", "id_supir", "id_kenek", "plat_kendaraan", "dibuat_oleh"] },
+  { id: "Faktur_Pengiriman", name: "Faktur (Invoice)", columns: ["id", "no_pengiriman", "no_faktur", "status", "alasan_retur", "kode_pelanggan", "nama_pelanggan", "alamat_pelanggan", "total_harga"] },
+  { id: "Rincian_Barang", name: "Rincian Barang", columns: ["id", "id_faktur", "no_faktur", "nama_barang", "qty", "qty_asli", "satuan"] },
   { id: "ReturTransaksi", name: "Retur Transaksi", columns: ["nomer_retur_pengiriman", "nomer_faktur", "nomer_piked_up", "tanggal_faktur_acc", "alasan_retur", "jenis_retur", "created_at"] }
 ]
 

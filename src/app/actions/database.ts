@@ -33,6 +33,9 @@ export async function getTableData(tableName: string) {
       case "Riwayat_Pelacakan": 
         data = await prisma.riwayat_Pelacakan.findMany({ take: 100, orderBy: { waktu: 'desc' } }); 
         break;
+      case "ReturTransaksi": 
+        data = await prisma.returTransaksi.findMany({ take: 100, orderBy: { created_at: 'desc' } }); 
+        break;
       default: 
         return { success: false, error: "Tabel tidak ditemukan" };
     }
