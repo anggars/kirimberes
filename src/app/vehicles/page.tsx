@@ -4,8 +4,8 @@ import { VehiclesClient } from "@/components/vehicles-client"
 export const dynamic = 'force-dynamic'
 
 export default async function VehiclesPage() {
-  const vehicles = await prisma.vehicle.findMany({
-    orderBy: { plate_number: 'asc' },
+  const vehicles = await prisma.kendaraan.findMany({
+    orderBy: { plat_nomor: 'asc' },
   })
 
   return (

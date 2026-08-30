@@ -6,19 +6,19 @@ import { createDeliveryOrder } from "./accurate"
 
 export async function getTrackingHistory(invoice_no: string) {
   try {
-    const invoice = await prisma.transactionInvoice.findFirst({
-      where: { invoice_no },
+    const invoice = await prisma.faktur_Pengiriman.findFirst({
+      where: { no_faktur: invoice_no },
       orderBy: { id: "desc" },
       include: {
         manifest: {
           include: {
-            driver: true,
-            helper: true,
-            vehicle: true
+            supir: true,
+            kenek: true,
+            kendaraan: true
           }
         },
         trackingHistory: {
-          orderBy: { timestamp: 'desc' }
+          orderBy: { waktu: 'desc' }
         },
         items: true
       }
@@ -47,8 +47,8 @@ export async function updateTrackingStatus(formData: FormData) {
   }
 
   try {
-    const invoice = await prisma.transactionInvoice.findFirst({
-      where: { invoice_no },
+    const invoice = await prisma.faktur_Pengiriman.findFirst({
+      where: { no_faktur: invoice_no },
       orderBy: { id: "desc" },
       include: { manifest: true }
     })
@@ -56,19 +56,19 @@ export async function updateTrackingStatus(formData: FormData) {
     if (!invoice) return { error: "Nomor resi tidak ditemukan di sistem" }
 
     // Update main status
-    await prisma.transactionInvoice.update({
+    await prisma.faktur_Pengiriman.update({
       where: { id: invoice.id },
       data: { status }
     })
 
     // Add history
-    await prisma.trackingHistory.create({
+    await prisma.riwayat_Pelacakan.create({
       data: {
-        invoice_id: invoice.id,
+        id_faktur: invoice.id,
         status,
-        location: location || null,
-        description: description || null,
-        updated_by: session.name || session.username,
+        lokasi: location || null,
+        deskripsi: description || null,
+        diperbarui_oleh: session.name || session.username,
         lat: formData.get("lat") ? parseFloat(formData.get("lat") as string) : null,
         lng: formData.get("lng") ? parseFloat(formData.get("lng") as string) : null,
       }
@@ -80,7 +80,7 @@ export async function updateTrackingStatus(formData: FormData) {
         const doResult = await createDeliveryOrder(
           invoice.manifest.no_pengiriman,
           new Date().toISOString(),
-          [invoice.invoice_no]
+          [invoice.no_faktur]
         );
         if (!doResult.success) {
           console.warn("Accurate DO Push Failed:", doResult.error);

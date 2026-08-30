@@ -47,7 +47,7 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
     const dateObj = new Date(dateFilter)
     if (!isNaN(dateObj.getTime())) {
       conditions.push({
-        transaction_date: {
+        tanggal_transaksi: {
           gte: new Date(`${dateFilter}T00:00:00.000Z`),
           lte: new Date(`${dateFilter}T23:59:59.999Z`),
         }
@@ -57,18 +57,18 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
 
   if (driverFilter) {
     conditions.push({
-      driver: {
-        name: { contains: driverFilter, mode: 'insensitive' }
+      supir: {
+        nama: { contains: driverFilter, mode: 'insensitive' }
       }
     })
   }
 
   if (vehicleFilter) {
     conditions.push({
-      vehicle: {
+      kendaraan: {
         OR: [
-          { plate_number: { contains: vehicleFilter, mode: 'insensitive' } },
-          { vehicle_name: { contains: vehicleFilter, mode: 'insensitive' } },
+          { plat_nomor: { contains: vehicleFilter, mode: 'insensitive' } },
+          { nama_kendaraan: { contains: vehicleFilter, mode: 'insensitive' } },
         ]
       }
     })
@@ -78,7 +78,7 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
     conditions.push({
       invoices: {
         some: {
-          invoice_no: { contains: invoiceFilter, mode: 'insensitive' }
+          no_faktur: { contains: invoiceFilter, mode: 'insensitive' }
         }
       }
     })
@@ -97,9 +97,9 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
       orderBy: { no_pengiriman: 'desc' },
       take: 100,
       include: {
-        driver: true,
-        helper: true,
-        vehicle: true,
+        supir: true,
+        kenek: true,
+        kendaraan: true,
         invoices: true,
         createdByUser: true,
       }
@@ -166,7 +166,7 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
                       </div>
                     </TableCell>
                     <TableCell>
-                      {new Date(tx.transaction_date).toLocaleDateString('id-ID', {
+                      {new Date(tx.tanggal_transaksi).toLocaleDateString('id-ID', {
                         day: 'numeric', month: 'long', year: 'numeric'
                       })}
                     </TableCell>
@@ -174,15 +174,15 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
                       <div className="flex flex-col gap-2">
                         <div className="flex items-center text-sm gap-2">
                           <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span className="capitalize">{tx.driver.name} (Supir) & {tx.helper.name} (Kenek)</span>
+                          <span className="capitalize">{tx.supir.nama} (Supir) & {tx.kenek.nama} (Kenek)</span>
                         </div>
                         <div className="flex items-center text-sm gap-2">
                           <Truck className="h-3.5 w-3.5 text-muted-foreground" />
                           <Badge variant="secondary" className="text-[10px] tracking-wider uppercase">
-                            {tx.vehicle.plate_number}
+                            {tx.kendaraan.plat_nomor}
                           </Badge>
                           <span className="text-xs text-muted-foreground capitalize hidden sm:inline-block">
-                            {tx.vehicle.vehicle_name}
+                            {tx.kendaraan.nama_kendaraan}
                           </span>
                         </div>
                       </div>
@@ -190,7 +190,7 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
                     <TableCell>
                       <div className="flex items-center text-sm gap-2">
                         <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="capitalize">{tx.createdByUser?.name || tx.createdByUser?.username || "Sistem"}</span>
+                        <span className="capitalize">{tx.createdByUser?.nama || tx.createdByUser?.username || "Sistem"}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -198,12 +198,12 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
                         {tx.invoices.map((inv: any) => (
                           <div key={inv.id} className="flex flex-col gap-1 p-2 bg-muted/30 rounded-md">
                             <div className="flex items-center gap-1">
-                              <TrackingModal invoice_no={inv.invoice_no} />
-                              <PrintQRButton invoice_no={inv.invoice_no} />
+                              <TrackingModal invoice_no={inv.no_faktur} />
+                              <PrintQRButton invoice_no={inv.no_faktur} />
                             </div>
-                            {inv.customer_name && (
+                            {inv.nama_pelanggan && (
                               <div className="text-xs text-muted-foreground">
-                                <span className="font-semibold">{inv.customer_name}</span>
+                                <span className="font-semibold">{inv.nama_pelanggan}</span>
                                 {inv.items_summary && (
                                   <span className="block truncate text-[10px] mt-0.5" title={inv.items_summary}>
                                     {inv.items_summary}

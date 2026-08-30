@@ -7,18 +7,18 @@ export const dynamic = 'force-dynamic'
 
 export default async function Dashboard() {
   const [totalVehicles, totalCrews, totalTransactions, totalInvoices] = await Promise.all([
-    prisma.vehicle.count(),
-    prisma.crew.count(),
+    prisma.kendaraan.count(),
+    prisma.kru.count(),
     prisma.manifest_Pengiriman.count(),
-    prisma.transactionInvoice.count(),
+    prisma.faktur_Pengiriman.count(),
   ])
 
   const recentTransactions = await prisma.manifest_Pengiriman.findMany({
     take: 5,
-    orderBy: { transaction_date: 'desc' },
+    orderBy: { tanggal_transaksi: 'desc' },
     include: {
-      driver: true,
-      vehicle: true,
+      supir: true,
+      kendaraan: true,
       invoices: true,
     }
   })
@@ -92,14 +92,14 @@ export default async function Dashboard() {
                   </div>
                   <div className="space-y-1 flex-1">
                     <p className="text-sm font-medium leading-none">
-                      {tx.no_pengiriman} - {tx.vehicle.plate_number}
+                      {tx.no_pengiriman} - {tx.kendaraan.plat_nomor}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Supir: {tx.driver.name} | {tx.invoices.length} invoice
+                      Supir: {tx.supir.nama} | {tx.invoices.length} invoice
                     </p>
                   </div>
                   <div className="font-medium text-sm">
-                    {new Date(tx.transaction_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    {new Date(tx.tanggal_transaksi).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                   </div>
                 </div>
               ))}

@@ -19,7 +19,7 @@ export default async function ReturPage() {
   const riwayatRetur = await prisma.returTransaksi.findMany({
     include: {
       manifest: {
-        include: { driver: true, vehicle: true }
+        include: { supir: true, kendaraan: true }
       }
     },
     orderBy: { created_at: "desc" }
@@ -66,7 +66,7 @@ export default async function ReturPage() {
                           {ret.nomer_piked_up}
                         </Link>
                         <div className="text-xs text-muted-foreground mt-1">
-                          {ret.manifest?.vehicle?.plate_number} • {ret.manifest?.driver?.name}
+                          {ret.manifest?.kendaraan?.plat_nomor} • {ret.manifest?.supir?.nama}
                         </div>
                       </td>
                       <td className="px-4 py-3">

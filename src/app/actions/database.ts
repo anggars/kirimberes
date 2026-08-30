@@ -15,23 +15,23 @@ export async function getTableData(tableName: string) {
       case "User": 
         data = await prisma.user.findMany({ take: 100 }); 
         break;
-      case "Crew": 
-        data = await prisma.crew.findMany({ take: 100 }); 
+      case "Kru": 
+        data = await prisma.kru.findMany({ take: 100 }); 
         break;
-      case "Vehicle": 
-        data = await prisma.vehicle.findMany({ take: 100 }); 
+      case "Kendaraan": 
+        data = await prisma.kendaraan.findMany({ take: 100 }); 
         break;
       case "Manifest_Pengiriman": 
-        data = await prisma.manifest_Pengiriman.findMany({ take: 100, orderBy: { transaction_date: 'desc' } }); 
+        data = await prisma.manifest_Pengiriman.findMany({ take: 100, orderBy: { tanggal_transaksi: 'desc' } }); 
         break;
-      case "TransactionInvoice": 
-        data = await prisma.transactionInvoice.findMany({ take: 100, orderBy: { id: 'desc' } }); 
+      case "Faktur_Pengiriman": 
+        data = await prisma.faktur_Pengiriman.findMany({ take: 100, orderBy: { id: 'desc' } }); 
         break;
-      case "InvoiceItem": 
-        data = await prisma.invoiceItem.findMany({ take: 100, orderBy: { id: 'desc' } }); 
+      case "Rincian_Barang": 
+        data = await prisma.rincian_Barang.findMany({ take: 100, orderBy: { id: 'desc' } }); 
         break;
-      case "TrackingHistory": 
-        data = await prisma.trackingHistory.findMany({ take: 100, orderBy: { timestamp: 'desc' } }); 
+      case "Riwayat_Pelacakan": 
+        data = await prisma.riwayat_Pelacakan.findMany({ take: 100, orderBy: { waktu: 'desc' } }); 
         break;
       default: 
         return { success: false, error: "Tabel tidak ditemukan" };
@@ -54,8 +54,8 @@ export async function deleteAllTransactions() {
     // Or Prisma deleteMany on Transaction will fail if foreign keys exist without Cascade
     
     // Let's delete from bottom up
-    await prisma.invoiceItem.deleteMany({});
-    await prisma.transactionInvoice.deleteMany({});
+    await prisma.rincian_Barang.deleteMany({});
+    await prisma.faktur_Pengiriman.deleteMany({});
     await prisma.manifest_Pengiriman.deleteMany({});
     
     return { success: true };

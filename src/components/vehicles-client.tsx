@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Vehicle } from "@prisma/client"
+import { Kendaraan } from "@prisma/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -23,24 +23,24 @@ import {
 import { createVehicle, updateVehicle, deleteVehicle } from "@/app/actions"
 import { PlusCircle, Pencil, Trash2, Truck } from "lucide-react"
 
-export function VehiclesClient({ initialVehicles }: { initialVehicles: Vehicle[] }) {
+export function VehiclesClient({ initialVehicles }: { initialVehicles: Kendaraan[] }) {
   const [isOpen, setIsOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   
   const [formData, setFormData] = useState({
-    plate_number: "",
-    vehicle_name: "",
-    brand: "",
+    plat_nomor: "",
+    nama_kendaraan: "",
+    merek: "",
   })
 
   const resetForm = () => {
-    setFormData({ plate_number: "", vehicle_name: "", brand: "" })
+    setFormData({ plat_nomor: "", nama_kendaraan: "", merek: "" })
     setEditingId(null)
   }
 
-  const handleEdit = (vehicle: Vehicle) => {
+  const handleEdit = (vehicle: Kendaraan) => {
     setFormData(vehicle)
-    setEditingId(vehicle.plate_number)
+    setEditingId(vehicle.plat_nomor)
     setIsOpen(true)
   }
 
@@ -48,8 +48,8 @@ export function VehiclesClient({ initialVehicles }: { initialVehicles: Vehicle[]
     e.preventDefault()
     if (editingId) {
       await updateVehicle(editingId, {
-        vehicle_name: formData.vehicle_name,
-        brand: formData.brand,
+        nama_kendaraan: formData.nama_kendaraan,
+        merek: formData.merek,
       })
     } else {
       await createVehicle(formData)
@@ -58,9 +58,9 @@ export function VehiclesClient({ initialVehicles }: { initialVehicles: Vehicle[]
     resetForm()
   }
 
-  const handleDelete = async (plate_number: string) => {
+  const handleDelete = async (plat_nomor: string) => {
     if (confirm("Yakin ingin menghapus kendaraan ini?")) {
-      await deleteVehicle(plate_number)
+      await deleteVehicle(plat_nomor)
     }
   }
 
@@ -86,8 +86,8 @@ export function VehiclesClient({ initialVehicles }: { initialVehicles: Vehicle[]
                 <Input 
                   required
                   placeholder="Misal: B 1234 ZN"
-                  value={formData.plate_number}
-                  onChange={(e) => setFormData({...formData, plate_number: e.target.value.toUpperCase()})}
+                  value={formData.plat_nomor}
+                  onChange={(e) => setFormData({...formData, plat_nomor: e.target.value.toUpperCase()})}
                   disabled={!!editingId}
                 />
               </div>
@@ -96,8 +96,8 @@ export function VehiclesClient({ initialVehicles }: { initialVehicles: Vehicle[]
                 <Input 
                   required
                   placeholder="Misal: isuzu box"
-                  value={formData.vehicle_name}
-                  onChange={(e) => setFormData({...formData, vehicle_name: e.target.value})}
+                  value={formData.nama_kendaraan}
+                  onChange={(e) => setFormData({...formData, nama_kendaraan: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
@@ -105,8 +105,8 @@ export function VehiclesClient({ initialVehicles }: { initialVehicles: Vehicle[]
                 <Input 
                   required
                   placeholder="Misal: ISUZU"
-                  value={formData.brand}
-                  onChange={(e) => setFormData({...formData, brand: e.target.value.toUpperCase()})}
+                  value={formData.merek}
+                  onChange={(e) => setFormData({...formData, merek: e.target.value.toUpperCase()})}
                 />
               </div>
               <Button type="submit" className="w-full">
@@ -129,20 +129,20 @@ export function VehiclesClient({ initialVehicles }: { initialVehicles: Vehicle[]
           </TableHeader>
           <TableBody>
             {initialVehicles.map((vehicle) => (
-              <TableRow key={vehicle.plate_number}>
+              <TableRow key={vehicle.plat_nomor}>
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
                     <Truck className="h-4 w-4 text-muted-foreground" />
-                    <Badge variant="secondary" className="uppercase font-bold tracking-widest">{vehicle.plate_number}</Badge>
+                    <Badge variant="secondary" className="uppercase font-bold tracking-widest">{vehicle.plat_nomor}</Badge>
                   </div>
                 </TableCell>
-                <TableCell className="capitalize">{vehicle.vehicle_name}</TableCell>
-                <TableCell className="uppercase font-semibold">{vehicle.brand}</TableCell>
+                <TableCell className="capitalize">{vehicle.nama_kendaraan}</TableCell>
+                <TableCell className="uppercase font-semibold">{vehicle.merek}</TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button variant="ghost" size="icon" onClick={() => handleEdit(vehicle)}>
                     <Pencil className="h-4 w-4 text-blue-500" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(vehicle.plate_number)}>
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(vehicle.plat_nomor)}>
                     <Trash2 className="h-4 w-4 text-red-500" />
                   </Button>
                 </TableCell>

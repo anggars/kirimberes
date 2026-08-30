@@ -11,92 +11,92 @@ model User {
   id       String @id @default(cuid())
   username String @unique
   password String
-  role     String @default("USER") // ADMIN or USER
-  name     String?
+  peran    String @default("USER") // ADMIN or USER
+  nama     String?
 
   manifests Manifest_Pengiriman[]
 }
 
-model Crew {
-  id      String @id
-  name    String
-  gender  String
-  address String
+model Kru {
+  id            String @id
+  nama          String
+  jenis_kelamin String
+  alamat        String
 
   driverTransactions Manifest_Pengiriman[] @relation("DriverRelation")
   helperTransactions Manifest_Pengiriman[] @relation("HelperRelation")
 }
 
-model Vehicle {
-  plate_number String @id
-  vehicle_name String
-  brand        String
+model Kendaraan {
+  plat_nomor     String @id
+  nama_kendaraan String
+  merek          String
 
   manifests Manifest_Pengiriman[]
 }
 
 model Manifest_Pengiriman {
-  no_pengiriman    String   @id
-  transaction_date DateTime
+  no_pengiriman     String   @id
+  tanggal_transaksi DateTime
 
-  driver_id String
-  driver    Crew   @relation("DriverRelation", fields: [driver_id], references: [id])
+  id_supir String
+  supir    Kru    @relation("DriverRelation", fields: [id_supir], references: [id])
 
-  helper_id String
-  helper    Crew   @relation("HelperRelation", fields: [helper_id], references: [id])
+  id_kenek String
+  kenek    Kru    @relation("HelperRelation", fields: [id_kenek], references: [id])
 
-  vehicle_plate String
-  vehicle       Vehicle @relation(fields: [vehicle_plate], references: [plate_number])
+  plat_kendaraan String
+  kendaraan      Kendaraan @relation(fields: [plat_kendaraan], references: [plat_nomor])
 
-  invoices TransactionInvoice[]
+  invoices Faktur_Pengiriman[]
 
-  created_by     String?
-  createdByUser  User?    @relation(fields: [created_by], references: [id])
+  dibuat_oleh   String?
+  createdByUser User?   @relation(fields: [dibuat_oleh], references: [id])
 
   retur_transaksi ReturTransaksi[]
 }
 
-model TransactionInvoice {
-  id               Int         @id @default(autoincrement())
+model Faktur_Pengiriman {
+  id               Int                 @id @default(autoincrement())
   no_pengiriman    String
   manifest         Manifest_Pengiriman @relation(fields: [no_pengiriman], references: [no_pengiriman], onDelete: Cascade)
-  invoice_no       String
-  status           String      @default("TERKIRIM") // TERKIRIM, RETURNED
-  return_reason    String?
-  customer_code    String?
-  customer_name    String?
-  customer_address String?
-  total_amount     Float?
+  no_faktur        String
+  status           String              @default("TERKIRIM") // TERKIRIM, RETURNED
+  alasan_retur     String?
+  kode_pelanggan   String?
+  nama_pelanggan   String?
+  alamat_pelanggan String?
+  total_harga      Float?
 
-  trackingHistory TrackingHistory[]
-  items           InvoiceItem[]
+  trackingHistory Riwayat_Pelacakan[]
+  items           Rincian_Barang[]
 }
 
-model InvoiceItem {
-  id         Int                @id @default(autoincrement())
-  invoice_id Int
-  invoice    TransactionInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
-  invoice_no String             @default("")
-  item_name    String
-  qty          Float              @default(1)
-  original_qty Float              @default(1)
-  satuan       String             @default("PCS") // Contoh: 'CRT', 'PCS', 'LTR', 'KG', 'PACK', 'DUS'
+model Rincian_Barang {
+  id          Int               @id @default(autoincrement())
+  id_faktur   Int
+  faktur      Faktur_Pengiriman @relation(fields: [id_faktur], references: [id], onDelete: Cascade)
+  no_faktur   String            @default("")
+  nama_barang String
+  qty         Float             @default(1)
+  qty_asli    Float             @default(1)
+  satuan      String            @default("PCS") // Contoh: 'CRT', 'PCS', 'LTR', 'KG', 'PACK', 'DUS'
 
-  @@index([invoice_no])
-  @@index([invoice_id])
+  @@index([no_faktur])
+  @@index([id_faktur])
 }
 
-model TrackingHistory {
-  id          Int      @id @default(autoincrement())
-  invoice_id  Int
-  invoice     TransactionInvoice @relation(fields: [invoice_id], references: [id], onDelete: Cascade)
-  status      String
-  location    String?
-  description String?
-  updated_by  String
-  lat         Float?
-  lng         Float?
-  timestamp   DateTime @default(now())
+model Riwayat_Pelacakan {
+  id              Int               @id @default(autoincrement())
+  id_faktur       Int
+  faktur          Faktur_Pengiriman @relation(fields: [id_faktur], references: [id], onDelete: Cascade)
+  status          String
+  lokasi          String?
+  deskripsi       String?
+  diperbarui_oleh String
+  lat             Float?
+  lng             Float?
+  waktu           DateTime          @default(now())
 }
 
 model ReturTransaksi {
@@ -109,7 +109,7 @@ model ReturTransaksi {
   created_at             DateTime @default(now())
 
   // Relations
-  manifest Manifest_Pengiriman       @relation(fields: [nomer_piked_up], references: [no_pengiriman])
+  manifest Manifest_Pengiriman @relation(fields: [nomer_piked_up], references: [no_pengiriman])
 
   rincian RincianRetur[]
 }

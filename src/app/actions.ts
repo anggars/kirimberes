@@ -6,38 +6,38 @@ import bcrypt from "bcryptjs"
 
 // --- CREW ACTIONS ---
 
-export async function createCrew(data: { id: string; name: string; gender: string; address: string }) {
-  await prisma.crew.create({ data })
+export async function createCrew(data: { id: string; nama: string; jenis_kelamin: string; alamat: string }) {
+  await prisma.kru.create({ data })
   revalidatePath("/crews")
   revalidatePath("/")
 }
 
-export async function updateCrew(id: string, data: { name: string; gender: string; address: string }) {
-  await prisma.crew.update({ where: { id }, data })
+export async function updateCrew(id: string, data: { nama: string; jenis_kelamin: string; alamat: string }) {
+  await prisma.kru.update({ where: { id }, data })
   revalidatePath("/crews")
 }
 
 export async function deleteCrew(id: string) {
-  await prisma.crew.delete({ where: { id } })
+  await prisma.kru.delete({ where: { id } })
   revalidatePath("/crews")
   revalidatePath("/")
 }
 
 // --- VEHICLE ACTIONS ---
 
-export async function createVehicle(data: { plate_number: string; vehicle_name: string; brand: string }) {
-  await prisma.vehicle.create({ data })
+export async function createVehicle(data: { plat_nomor: string; nama_kendaraan: string; merek: string }) {
+  await prisma.kendaraan.create({ data })
   revalidatePath("/vehicles")
   revalidatePath("/")
 }
 
-export async function updateVehicle(plate_number: string, data: { vehicle_name: string; brand: string }) {
-  await prisma.vehicle.update({ where: { plate_number }, data })
+export async function updateVehicle(plat_nomor: string, data: { nama_kendaraan: string; merek: string }) {
+  await prisma.kendaraan.update({ where: { plat_nomor }, data })
   revalidatePath("/vehicles")
 }
 
-export async function deleteVehicle(plate_number: string) {
-  await prisma.vehicle.delete({ where: { plate_number } })
+export async function deleteVehicle(plat_nomor: string) {
+  await prisma.kendaraan.delete({ where: { plat_nomor } })
   revalidatePath("/vehicles")
   revalidatePath("/")
 }
@@ -46,17 +46,17 @@ export async function deleteVehicle(plate_number: string) {
 
 export async function createTransaction(data: {
   no_pengiriman: string
-  transaction_date: string
-  driver_id: string
-  helper_id: string
-  vehicle_plate: string
+  tanggal_transaksi: string
+  id_supir: string
+  id_kenek: string
+  plat_kendaraan: string
   invoices: {
-    invoice_no: string
-    customer_code?: string
-    customer_name?: string
-    customer_address?: string
+    no_faktur: string
+    kode_pelanggan?: string
+    nama_pelanggan?: string
+    alamat_pelanggan?: string
     items_summary?: string
-    total_amount?: number
+    total_harga?: number
     extracted_items?: { item_name: string; quantity: string }[]
   }[] // Array of detailed invoice objects
 }) {
@@ -65,19 +65,19 @@ export async function createTransaction(data: {
   
   // Check for duplicate invoices in the database
   // Only block if the LATEST record is not RETURNED_FULL
-  const invoiceNos = data.invoices.map(i => i.invoice_no)
-  const existingInvoices = await prisma.transactionInvoice.findMany({
+  const invoiceNos = data.invoices.map(i => i.no_faktur)
+  const existingInvoices = await prisma.faktur_Pengiriman.findMany({
     where: {
-      invoice_no: { in: invoiceNos }
+      no_faktur: { in: invoiceNos }
     },
     orderBy: { id: "desc" }
   })
 
-  // Group by invoice_no to get only the latest for each
+  // Group by no_faktur to get only the latest for each
   const latestInvoices = new Map();
   for (const inv of existingInvoices) {
-    if (!latestInvoices.has(inv.invoice_no)) {
-      latestInvoices.set(inv.invoice_no, inv);
+    if (!latestInvoices.has(inv.no_faktur)) {
+      latestInvoices.set(inv.no_faktur, inv);
     }
   }
 
@@ -87,32 +87,32 @@ export async function createTransaction(data: {
   })
 
   if (conflictingInvoices.length > 0) {
-    const duplicates = conflictingInvoices.map((inv) => inv.invoice_no).join(", ")
+    const duplicates = conflictingInvoices.map((inv) => inv.no_faktur).join(", ")
     return { success: false, error: `Gagal: Invoice sudah berstatus Picked Up di sistem (${duplicates})` }
   }
 
   await prisma.manifest_Pengiriman.create({
     data: {
       no_pengiriman: data.no_pengiriman,
-      transaction_date: new Date(data.transaction_date),
-      driver_id: data.driver_id,
-      helper_id: data.helper_id,
-      vehicle_plate: data.vehicle_plate,
-      created_by: session?.id,
+      tanggal_transaksi: new Date(data.tanggal_transaksi),
+      id_supir: data.id_supir,
+      id_kenek: data.id_kenek,
+      plat_kendaraan: data.plat_kendaraan,
+      dibuat_oleh: session?.id,
       invoices: {
         create: data.invoices.map((inv) => ({ 
-          invoice_no: inv.invoice_no,
-          customer_code: inv.customer_code,
-          customer_name: inv.customer_name,
-          customer_address: inv.customer_address,
-          total_amount: inv.total_amount,
+          no_faktur: inv.no_faktur,
+          kode_pelanggan: inv.kode_pelanggan,
+          nama_pelanggan: inv.nama_pelanggan,
+          alamat_pelanggan: inv.alamat_pelanggan,
+          total_harga: inv.total_harga,
           status: "picked up",
           items: {
             create: inv.extracted_items?.map((item: any) => ({
-              invoice_no: inv.invoice_no,
-              item_name: item.item_name,
+              no_faktur: inv.no_faktur,
+              nama_barang: item.item_name,
               qty: Number(item.qty),
-              original_qty: Number(item.original_qty || item.qty),
+              qty_asli: Number(item.original_qty || item.qty),
               satuan: item.satuan,
             })) || [],
           },
@@ -125,9 +125,9 @@ export async function createTransaction(data: {
   return { success: true }
 }
 
-export async function checkInvoiceGlobalDuplicate(invoice_no: string) {
-  const existing = await prisma.transactionInvoice.findFirst({
-    where: { invoice_no },
+export async function checkInvoiceGlobalDuplicate(no_faktur: string) {
+  const existing = await prisma.faktur_Pengiriman.findFirst({
+    where: { no_faktur },
     orderBy: { id: "desc" }
   })
   
@@ -157,7 +157,7 @@ export async function checkInvoiceGlobalDuplicate(invoice_no: string) {
 
 export async function deleteTransaction(no_pengiriman: string) {
   // First delete associated invoices because of foreign key constraint
-  await prisma.transactionInvoice.deleteMany({
+  await prisma.faktur_Pengiriman.deleteMany({
     where: { no_pengiriman },
   })
   await prisma.manifest_Pengiriman.delete({
@@ -197,25 +197,25 @@ export async function getNextTransactionNumber(dateString: string) {
 
 // --- USER ACTIONS (SUPER_USER ONLY) ---
 
-export async function createUser(data: { username: string; password?: string; name: string; role: string }) {
+export async function createUser(data: { username: string; password?: string; nama: string; peran: string }) {
   const hashedPassword = data.password ? await bcrypt.hash(data.password, 10) : await bcrypt.hash("123456", 10)
   
   await prisma.user.create({
     data: {
       username: data.username,
       password: hashedPassword,
-      name: data.name,
-      role: data.role,
+      nama: data.nama,
+      peran: data.peran,
     }
   })
   revalidatePath("/users")
 }
 
-export async function updateUser(id: string, data: { username: string; password?: string; name: string; role: string }) {
+export async function updateUser(id: string, data: { username: string; password?: string; nama: string; peran: string }) {
   const updateData: any = {
     username: data.username,
-    name: data.name,
-    role: data.role,
+    nama: data.nama,
+    peran: data.peran,
   }
   
   if (data.password) {

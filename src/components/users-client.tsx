@@ -29,21 +29,21 @@ export function UsersClient({ initialUsers }: { initialUsers: Omit<User, 'passwo
   
   const [formData, setFormData] = useState({
     username: "",
-    name: "",
-    role: "USER",
+    nama: "",
+    peran: "USER",
     password: "", // Only used for creating or changing password
   })
 
   const resetForm = () => {
-    setFormData({ username: "", name: "", role: "USER", password: "" })
+    setFormData({ username: "", nama: "", peran: "USER", password: "" })
     setEditingId(null)
   }
 
   const handleEdit = (user: any) => {
     setFormData({
       username: user.username,
-      name: user.name || "",
-      role: user.role,
+      nama: user.nama || "",
+      peran: user.peran,
       password: "", // don't load password
     })
     setEditingId(user.id)
@@ -55,8 +55,8 @@ export function UsersClient({ initialUsers }: { initialUsers: Omit<User, 'passwo
     if (editingId) {
       await updateUser(editingId, {
         username: formData.username,
-        name: formData.name,
-        role: formData.role,
+        nama: formData.nama,
+        peran: formData.peran,
         password: formData.password || undefined,
       })
     } else {
@@ -103,8 +103,8 @@ export function UsersClient({ initialUsers }: { initialUsers: Omit<User, 'passwo
                 <Input 
                   required
                   placeholder="Nama Pengguna"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  value={formData.nama}
+                  onChange={(e) => setFormData({...formData, nama: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
@@ -112,8 +112,8 @@ export function UsersClient({ initialUsers }: { initialUsers: Omit<User, 'passwo
                 <select 
                   className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   required
-                  value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  value={formData.peran}
+                  onChange={(e) => setFormData({...formData, peran: e.target.value})}
                 >
                   <option value="USER">User (Input Transaksi)</option>
                   <option value="ADMIN">Admin (Akses Master Data & Transaksi)</option>
@@ -155,10 +155,10 @@ export function UsersClient({ initialUsers }: { initialUsers: Omit<User, 'passwo
                 <TableCell className="font-medium">
                   {user.username}
                 </TableCell>
-                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell className="font-medium">{user.nama}</TableCell>
                 <TableCell>
-                  <Badge variant={user.role === 'SUPER_USER' ? 'default' : user.role === 'ADMIN' ? 'secondary' : 'outline'}>
-                    {user.role}
+                  <Badge variant={user.peran === 'SUPER_USER' ? 'default' : user.peran === 'ADMIN' ? 'secondary' : 'outline'}>
+                    {user.peran}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right space-x-2">

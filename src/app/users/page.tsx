@@ -20,8 +20,8 @@ export default async function UsersPage() {
     select: {
       id: true,
       username: true,
-      name: true,
-      role: true,
+      nama: true,
+      peran: true,
     },
     orderBy: {
       username: 'asc',

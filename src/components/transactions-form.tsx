@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Crew, Vehicle } from "@prisma/client"
+import { Kru, Kendaraan } from "@prisma/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,15 +12,15 @@ import Link from "next/link"
 import { searchSalesInvoice } from "@/app/actions/accurate"
 import { MobileScannerDialog } from "@/components/mobile-scanner-dialog"
 
-export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles: Vehicle[] }) {
+export function TransactionsForm({ crews, vehicles }: { crews: Kru[], vehicles: Kendaraan[] }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     no_pengiriman: "",
-    transaction_date: new Date().toISOString().split('T')[0],
-    driver_id: "",
-    helper_id: "",
-    vehicle_plate: "",
+    tanggal_transaksi: new Date().toISOString().split('T')[0],
+    id_supir: "",
+    id_kenek: "",
+    plat_kendaraan: "",
     invoices: [] as { no: string, data: any }[]
   })
 
@@ -40,13 +40,13 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
   // Auto-generate transaction number on mount and when date changes
   useEffect(() => {
     async function fetchNextNo() {
-      if (formData.transaction_date) {
-        const nextNo = await getNextTransactionNumber(formData.transaction_date);
+      if (formData.tanggal_transaksi) {
+        const nextNo = await getNextTransactionNumber(formData.tanggal_transaksi);
         setFormData(prev => ({ ...prev, no_pengiriman: nextNo }));
       }
     }
     fetchNextNo();
-  }, [formData.transaction_date])
+  }, [formData.tanggal_transaksi])
 
   const handleRemoveInvoice = (index: number) => {
     const newInvoices = formData.invoices.filter((_, i) => i !== index)
@@ -180,11 +180,11 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
       }
       
       const invoicesToSubmit = validInvoices.map(inv => ({
-        invoice_no: inv.no.trim(),
-        customer_code: inv.data?.customer_code,
-        customer_name: inv.data?.company_name,
-        customer_address: inv.data?.customer_address,
-        total_amount: inv.data?.total_amount,
+        no_faktur: inv.no.trim(),
+        kode_pelanggan: inv.data?.customer_code,
+        nama_pelanggan: inv.data?.company_name,
+        alamat_pelanggan: inv.data?.customer_address,
+        total_harga: inv.data?.total_amount,
         extracted_items: inv.data?.extracted_items
       }));
 
@@ -231,8 +231,8 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
               <Input 
                 type="date"
                 required
-                value={formData.transaction_date}
-                onChange={(e) => setFormData({...formData, transaction_date: e.target.value})}
+                value={formData.tanggal_transaksi}
+                onChange={(e) => setFormData({...formData, tanggal_transaksi: e.target.value})}
               />
             </div>
           </div>
@@ -245,13 +245,13 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                 <select 
                   className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   required
-                  value={formData.vehicle_plate}
-                  onChange={(e) => setFormData({...formData, vehicle_plate: e.target.value})}
+                  value={formData.plat_kendaraan}
+                  onChange={(e) => setFormData({...formData, plat_kendaraan: e.target.value})}
                 >
                   <option value="" disabled>Pilih Kendaraan</option>
                   {vehicles.map(v => (
-                    <option key={v.plate_number} value={v.plate_number}>
-                      {v.plate_number} - {v.vehicle_name}
+                    <option key={v.plat_nomor} value={v.plat_nomor}>
+                      {v.plat_nomor} - {v.nama_kendaraan}
                     </option>
                   ))}
                 </select>
@@ -261,13 +261,13 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                 <select 
                   className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   required
-                  value={formData.driver_id}
-                  onChange={(e) => setFormData({...formData, driver_id: e.target.value})}
+                  value={formData.id_supir}
+                  onChange={(e) => setFormData({...formData, id_supir: e.target.value})}
                 >
                   <option value="" disabled>Pilih Supir</option>
-                  {crews.filter(c => c.id !== formData.helper_id).map(c => (
+                  {crews.filter(c => c.id !== formData.id_kenek).map(c => (
                     <option key={c.id} value={c.id}>
-                      {c.name} ({c.id})
+                      {c.nama} ({c.id})
                     </option>
                   ))}
                 </select>
@@ -277,13 +277,13 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                 <select 
                   className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   required
-                  value={formData.helper_id}
-                  onChange={(e) => setFormData({...formData, helper_id: e.target.value})}
+                  value={formData.id_kenek}
+                  onChange={(e) => setFormData({...formData, id_kenek: e.target.value})}
                 >
                   <option value="" disabled>Pilih Kenek</option>
-                  {crews.filter(c => c.id !== formData.driver_id).map(c => (
+                  {crews.filter(c => c.id !== formData.id_supir).map(c => (
                     <option key={c.id} value={c.id}>
-                      {c.name} ({c.id})
+                      {c.nama} ({c.id})
                     </option>
                   ))}
                 </select>

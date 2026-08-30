@@ -7,13 +7,13 @@ import { getTableData, deleteAllTransactions } from "@/app/actions/database"
 import { Trash2 } from "lucide-react"
 
 const TABLES = [
-  { id: "User", name: "User" },
-  { id: "Crew", name: "Kru (Supir/Kenek)" },
-  { id: "Vehicle", name: "Kendaraan" },
-  { id: "Manifest_Pengiriman", name: "Manifest Pengiriman" },
-  { id: "TransactionInvoice", name: "Faktur (Invoice)" },
-  { id: "InvoiceItem", name: "Rincian Barang" },
-  { id: "ReturTransaksi", name: "Retur Transaksi" }
+  { id: "User", name: "User", columns: ["id", "username", "password", "role", "name"] },
+  { id: "Crew", name: "Kru (Supir/Kenek)", columns: ["id", "name", "gender", "address"] },
+  { id: "Vehicle", name: "Kendaraan", columns: ["plate_number", "vehicle_name", "brand"] },
+  { id: "Manifest_Pengiriman", name: "Manifest Pengiriman", columns: ["no_pengiriman", "transaction_date", "driver_id", "helper_id", "vehicle_plate", "created_by"] },
+  { id: "TransactionInvoice", name: "Faktur (Invoice)", columns: ["id", "no_pengiriman", "invoice_no", "status", "return_reason", "customer_code", "customer_name", "customer_address", "total_amount"] },
+  { id: "InvoiceItem", name: "Rincian Barang", columns: ["id", "invoice_id", "invoice_no", "item_name", "qty", "original_qty", "satuan"] },
+  { id: "ReturTransaksi", name: "Retur Transaksi", columns: ["nomer_retur_pengiriman", "nomer_faktur", "nomer_piked_up", "tanggal_faktur_acc", "alasan_retur", "jenis_retur", "created_at"] }
 ]
 
 export function DatabaseViewer() {
@@ -59,10 +59,12 @@ export function DatabaseViewer() {
   const renderTable = () => {
     if (loading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading data...</div>
     if (error) return <div className="p-8 text-center text-red-500">{error}</div>
-    if (!data || data.length === 0) return <div className="p-8 text-center text-muted-foreground">Tabel ini kosong.</div>
+    const currentTableDef = TABLES.find(t => t.id === activeTable);
+    const columns = data && data.length > 0 
+      ? Array.from(new Set(data.flatMap(Object.keys)))
+      : currentTableDef?.columns || [];
 
-    // Extract all unique keys from the data to form columns
-    const columns = Array.from(new Set(data.flatMap(Object.keys)))
+    if (columns.length === 0) return <div className="p-8 text-center text-muted-foreground">Tabel ini kosong.</div>;
 
     return (
       <div className="overflow-x-auto rounded-md border">
@@ -77,27 +79,35 @@ export function DatabaseViewer() {
             </tr>
           </thead>
           <tbody className="divide-y">
-            {data.map((row, i) => (
-              <tr key={i} className="hover:bg-muted/30 transition-colors">
-                {columns.map(col => {
-                  let val = row[col];
-                  
-                  // Format value for display
-                  if (val === null) val = <span className="text-muted-foreground italic">null</span>;
-                  else if (val === undefined) val = "";
-                  else if (typeof val === 'boolean') val = val ? "true" : "false";
-                  else if (val instanceof Date) val = val.toISOString();
-                  else if (typeof val === 'object') val = JSON.stringify(val);
-                  else val = String(val);
-
-                  return (
-                    <td key={col} className="px-4 py-2 max-w-xs truncate" title={String(row[col] || '')}>
-                      {val}
-                    </td>
-                  )
-                })}
+            {(!data || data.length === 0) ? (
+              <tr>
+                <td colSpan={columns.length} className="px-4 py-12 text-center text-muted-foreground italic">
+                  Tabel ini kosong. Tidak ada data.
+                </td>
               </tr>
-            ))}
+            ) : (
+              data.map((row, i) => (
+                <tr key={i} className="hover:bg-muted/30 transition-colors">
+                  {columns.map(col => {
+                    let val = row[col];
+                    
+                    // Format value for display
+                    if (val === null) val = <span className="text-muted-foreground italic">null</span>;
+                    else if (val === undefined) val = "";
+                    else if (typeof val === 'boolean') val = val ? "true" : "false";
+                    else if (val instanceof Date) val = val.toISOString();
+                    else if (typeof val === 'object') val = JSON.stringify(val);
+                    else val = String(val);
+
+                    return (
+                      <td key={col} className="px-4 py-2 max-w-xs truncate" title={String(row[col] || '')}>
+                        {val}
+                      </td>
+                    )
+                  })}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

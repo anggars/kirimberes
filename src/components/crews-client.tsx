@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Crew } from "@prisma/client"
+import { Kru } from "@prisma/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -23,23 +23,23 @@ import {
 import { createCrew, updateCrew, deleteCrew } from "@/app/actions"
 import { PlusCircle, Pencil, Trash2 } from "lucide-react"
 
-export function CrewsClient({ initialCrews }: { initialCrews: Crew[] }) {
+export function CrewsClient({ initialCrews }: { initialCrews: Kru[] }) {
   const [isOpen, setIsOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   
   const [formData, setFormData] = useState({
     id: "",
-    name: "",
-    gender: "",
-    address: "",
+    nama: "",
+    jenis_kelamin: "",
+    alamat: "",
   })
 
   const resetForm = () => {
-    setFormData({ id: "", name: "", gender: "", address: "" })
+    setFormData({ id: "", nama: "", jenis_kelamin: "", alamat: "" })
     setEditingId(null)
   }
 
-  const handleEdit = (crew: Crew) => {
+  const handleEdit = (crew: Kru) => {
     setFormData(crew)
     setEditingId(crew.id)
     setIsOpen(true)
@@ -49,9 +49,9 @@ export function CrewsClient({ initialCrews }: { initialCrews: Crew[] }) {
     e.preventDefault()
     if (editingId) {
       await updateCrew(editingId, {
-        name: formData.name,
-        gender: formData.gender,
-        address: formData.address,
+        nama: formData.nama,
+        jenis_kelamin: formData.jenis_kelamin,
+        alamat: formData.alamat,
       })
     } else {
       await createCrew(formData)
@@ -98,8 +98,8 @@ export function CrewsClient({ initialCrews }: { initialCrews: Crew[] }) {
                 <Input 
                   required
                   placeholder="Nama Lengkap"
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  value={formData.nama}
+                  onChange={(e) => setFormData({...formData, nama: e.target.value})}
                 />
               </div>
               <div className="space-y-2">
@@ -107,8 +107,8 @@ export function CrewsClient({ initialCrews }: { initialCrews: Crew[] }) {
                 <select 
                   className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   required
-                  value={formData.gender}
-                  onChange={(e) => setFormData({...formData, gender: e.target.value})}
+                  value={formData.jenis_kelamin}
+                  onChange={(e) => setFormData({...formData, jenis_kelamin: e.target.value})}
                 >
                   <option value="" disabled>Pilih Jenis Kelamin</option>
                   <option value="laki laki">Laki-laki</option>
@@ -120,8 +120,8 @@ export function CrewsClient({ initialCrews }: { initialCrews: Crew[] }) {
                 <Input 
                   required
                   placeholder="Alamat"
-                  value={formData.address}
-                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+                  value={formData.alamat}
+                  onChange={(e) => setFormData({...formData, alamat: e.target.value})}
                 />
               </div>
               <Button type="submit" className="w-full">
@@ -149,9 +149,9 @@ export function CrewsClient({ initialCrews }: { initialCrews: Crew[] }) {
                 <TableCell className="font-medium">
                   <Badge variant="outline">{crew.id}</Badge>
                 </TableCell>
-                <TableCell className="capitalize font-medium">{crew.name}</TableCell>
-                <TableCell className="capitalize">{crew.gender}</TableCell>
-                <TableCell className="capitalize text-muted-foreground">{crew.address}</TableCell>
+                <TableCell className="capitalize font-medium">{crew.nama}</TableCell>
+                <TableCell className="capitalize">{crew.jenis_kelamin}</TableCell>
+                <TableCell className="capitalize text-muted-foreground">{crew.alamat}</TableCell>
                 <TableCell className="text-right space-x-2">
                   <Button variant="ghost" size="icon" onClick={() => handleEdit(crew)}>
                     <Pencil className="h-4 w-4 text-blue-500" />

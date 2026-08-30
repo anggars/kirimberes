@@ -9,9 +9,9 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
   const tx: any = await prisma.manifest_Pengiriman.findUnique({
     where: { no_pengiriman },
     include: {
-      driver: true,
-      helper: true,
-      vehicle: true,
+      supir: true,
+      kenek: true,
+      kendaraan: true,
       invoices: {
         include: {
           // @ts-ignore
@@ -48,23 +48,23 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
               <td className="pr-4 py-0.5">Tgl</td>
               <td className="px-2">:</td>
               <td className="border-b border-black border-dotted min-w-37.5">
-                {new Date(tx.transaction_date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                {new Date(tx.tanggal_transaksi).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}
               </td>
             </tr>
             <tr>
               <td className="pr-4 py-0.5">Supir</td>
               <td className="px-2">:</td>
-              <td className="border-b border-black border-dotted capitalize">{tx.driver.name}</td>
+              <td className="border-b border-black border-dotted capitalize">{tx.supir.nama}</td>
             </tr>
             <tr>
               <td className="pr-4 py-0.5">Kneck</td>
               <td className="px-2">:</td>
-              <td className="border-b border-black border-dotted capitalize">{tx.helper.name}</td>
+              <td className="border-b border-black border-dotted capitalize">{tx.kenek.nama}</td>
             </tr>
             <tr>
               <td className="pr-4 py-0.5">No. Polisi</td>
               <td className="px-2">:</td>
-              <td className="border-b border-black border-dotted uppercase">{tx.vehicle.plate_number}</td>
+              <td className="border-b border-black border-dotted uppercase">{tx.kendaraan.plat_nomor}</td>
             </tr>
           </tbody>
         </table>
@@ -91,9 +91,9 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
             let items: { name: string, qty: string, original_qty: string }[] = [];
             if (inv?.items && inv.items.length > 0) {
               items = inv.items.map((it: any) => ({ 
-                name: it.item_name, 
+                name: it.nama_barang, 
                 qty: `${it.qty} ${it.satuan}`,
-                original_qty: `${it.original_qty ?? it.qty} ${it.satuan}` 
+                original_qty: `${it.qty_asli ?? it.qty} ${it.satuan}` 
               }));
             }
             
@@ -113,7 +113,7 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
                       {itemIdx === 0 && (
                         <>
                           <td className="border border-black px-1 py-0.5 text-center" rowSpan={items.length}>{idx + 1}</td>
-                          <td className="border border-black px-1 py-0.5 font-semibold text-[10px] leading-tight" rowSpan={items.length}>{inv?.customer_name || ""}</td>
+                          <td className="border border-black px-1 py-0.5 font-semibold text-[10px] leading-tight" rowSpan={items.length}>{inv?.nama_pelanggan || ""}</td>
                         </>
                       )}
                       
@@ -140,11 +140,11 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
                           <td className="border border-black px-1 py-0.5 text-center font-bold text-red-600" rowSpan={items.length}>
                             {inv?.status?.startsWith("RETURNED") ? "X" : ""}
                           </td>
-                          <td className="border border-black px-1 py-0.5 text-center font-mono text-[10px]" rowSpan={items.length}>{inv?.invoice_no || ""}</td>
+                          <td className="border border-black px-1 py-0.5 text-center font-mono text-[10px]" rowSpan={items.length}>{inv?.no_faktur || ""}</td>
                           <td className="border border-black px-1 py-0.5 text-[10px]" rowSpan={items.length}>
                             {inv?.status?.startsWith("RETURNED") && (
                               <div className="text-red-600 font-semibold italic">
-                                {inv.status === "RETURNED_PARTIAL" ? "Retur Sebagian: " : "Tidak Terkirim: "}{inv.return_reason || "Retur"}
+                                {inv.status === "RETURNED_PARTIAL" ? "Retur Sebagian: " : "Tidak Terkirim: "}{inv.alasan_retur || "Retur"}
                               </div>
                             )}
                           </td>

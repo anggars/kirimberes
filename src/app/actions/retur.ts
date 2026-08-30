@@ -45,15 +45,15 @@ export async function generateReturnNumber(): Promise<string> {
 
 export async function searchLocalInvoice(invoice_no: string) {
   try {
-    const existing = await prisma.transactionInvoice.findFirst({
-      where: { invoice_no },
+  const existing = await prisma.faktur_Pengiriman.findFirst({
+      where: { no_faktur: invoice_no },
       orderBy: { id: "desc" },
       include: {
         manifest: {
           include: {
-            driver: true,
-            helper: true,
-            vehicle: true
+            supir: true,
+            kenek: true,
+            kendaraan: true
           }
         },
         items: true
@@ -65,20 +65,20 @@ export async function searchLocalInvoice(invoice_no: string) {
     }
 
     if (existing.status.toLowerCase().includes("returned") || existing.status === "RETURNED_FULL") {
-      return { success: false, error: `Faktur sudah diretur dengan alasan: ${existing.return_reason || "Retur Full"}` };
+      return { success: false, error: `Faktur sudah diretur dengan alasan: ${existing.alasan_retur || "Retur Full"}` };
     }
 
     return {
       success: true,
       data: {
         id: existing.id,
-        invoice_no: existing.invoice_no,
+        invoice_no: existing.no_faktur,
         no_pengiriman: existing.no_pengiriman,
-        customer_name: existing.customer_name,
-        total_amount: existing.total_amount,
-        driver_name: existing.manifest.driver.name,
-        helper_name: existing.manifest.helper.name,
-        vehicle_plate: existing.manifest.vehicle.plate_number,
+        customer_name: existing.nama_pelanggan,
+        total_amount: existing.total_harga,
+        driver_name: existing.manifest.supir.nama,
+        helper_name: existing.manifest.kenek.nama,
+        vehicle_plate: existing.manifest.kendaraan.plat_nomor,
         items: existing.items
       }
     };
@@ -95,8 +95,8 @@ export async function submitReturn(
   itemsData?: { item_name: string; qty: number; satuan: string }[]
 ) {
   try {
-    const existing = await prisma.transactionInvoice.findFirst({
-      where: { invoice_no },
+    const existing = await prisma.faktur_Pengiriman.findFirst({
+      where: { no_faktur: invoice_no },
       orderBy: { id: "desc" },
       include: { items: true }
     });
@@ -117,7 +117,7 @@ export async function submitReturn(
       await tx.returTransaksi.create({
         data: {
           nomer_retur_pengiriman,
-          nomer_faktur: existing.invoice_no,
+          nomer_faktur: existing.no_faktur,
           nomer_piked_up: existing.no_pengiriman,
           tanggal_faktur_acc: new Date(), // using current date
           alasan_retur: return_reason,
@@ -132,9 +132,9 @@ export async function submitReturn(
         await tx.rincianRetur.createMany({
           data: itemsToSave.map(item => ({
             nomer_retur_pengiriman,
-            nomer_faktur: existing.invoice_no,
+            nomer_faktur: existing.no_faktur,
             nomer_piked_up: existing.no_pengiriman,
-            nama_barang: item.item_name || item.item_name,
+            nama_barang: (item as any).item_name || (item as any).nama_barang,
             qty: item.qty,
             satuan: item.satuan || "PCS"
           }))
@@ -143,20 +143,20 @@ export async function submitReturn(
 
       // 3. Update TransactionInvoice Status if FULL
       if (return_type === "FULL") {
-        await tx.transactionInvoice.updateMany({
-          where: { invoice_no: invoice_no },
+        await tx.faktur_Pengiriman.updateMany({
+          where: { no_faktur: invoice_no },
           data: {
             status: "RETURNED",
-            return_reason: return_reason
+            alasan_retur: return_reason
           }
         });
       } else {
         // If SEBAGIAN, update return_reason and status to RETURNED_PARTIAL
-        await tx.transactionInvoice.updateMany({
-          where: { invoice_no: invoice_no },
+        await tx.faktur_Pengiriman.updateMany({
+          where: { no_faktur: invoice_no },
           data: {
             status: "RETURNED_PARTIAL",
-            return_reason: return_reason
+            alasan_retur: return_reason
           }
         });
       }

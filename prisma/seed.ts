@@ -15,8 +15,8 @@ async function main() {
     create: {
       username: 'superuser',
       password: passwordHash,
-      role: 'SUPER_USER',
-      name: 'Super Administrator'
+      peran: 'SUPER_USER',
+      nama: 'Super Administrator'
     }
   })
 
@@ -26,8 +26,8 @@ async function main() {
     create: {
       username: 'admin',
       password: passwordHash,
-      role: 'ADMIN',
-      name: 'Administrator'
+      peran: 'ADMIN',
+      nama: 'Administrator'
     }
   })
 
@@ -37,22 +37,22 @@ async function main() {
     create: {
       username: 'user1',
       password: passwordHash,
-      role: 'USER',
-      name: 'Kasir 1'
+      peran: 'USER',
+      nama: 'Kasir 1'
     }
   })
   console.log('Users seeded.')
 
   // Seed Crews
   const crews = [
-    { id: 'sup-001', name: 'wawan', gender: 'laki laki', address: 'jakarta' },
-    { id: 'sup-002', name: 'tio', gender: 'laki laki', address: 'jakarta' },
-    { id: 'sup-003', name: 'hasan', gender: 'laki laki', address: 'jakarta' },
-    { id: 'sup-004', name: 'ubai', gender: 'laki laki', address: 'jakarta' },
+    { id: 'sup-001', nama: 'wawan', jenis_kelamin: 'laki laki', alamat: 'jakarta' },
+    { id: 'sup-002', nama: 'tio', jenis_kelamin: 'laki laki', alamat: 'jakarta' },
+    { id: 'sup-003', nama: 'hasan', jenis_kelamin: 'laki laki', alamat: 'jakarta' },
+    { id: 'sup-004', nama: 'ubai', jenis_kelamin: 'laki laki', alamat: 'jakarta' },
   ]
 
   for (const crew of crews) {
-    await prisma.crew.upsert({
+    await prisma.kru.upsert({
       where: { id: crew.id },
       update: {},
       create: crew,
@@ -62,15 +62,15 @@ async function main() {
 
   // Seed Vehicles
   const vehicles = [
-    { plate_number: 'B 1234 ZN', vehicle_name: 'isuzu box', brand: 'ISUZU' },
-    { plate_number: 'B 1235 ZN', vehicle_name: 'isuzu box', brand: 'ISUZU' },
-    { plate_number: 'B 1236 ZN', vehicle_name: 'isuzu box', brand: 'ISUZU' },
-    { plate_number: 'B 1237 ZN', vehicle_name: 'isuzu box', brand: 'ISUZU' },
+    { plat_nomor: 'B 1234 ZN', nama_kendaraan: 'isuzu box', merek: 'ISUZU' },
+    { plat_nomor: 'B 1235 ZN', nama_kendaraan: 'isuzu box', merek: 'ISUZU' },
+    { plat_nomor: 'B 1236 ZN', nama_kendaraan: 'isuzu box', merek: 'ISUZU' },
+    { plat_nomor: 'B 1237 ZN', nama_kendaraan: 'isuzu box', merek: 'ISUZU' },
   ]
 
   for (const v of vehicles) {
-    await prisma.vehicle.upsert({
-      where: { plate_number: v.plate_number },
+    await prisma.kendaraan.upsert({
+      where: { plat_nomor: v.plat_nomor },
       update: {},
       create: v,
     })

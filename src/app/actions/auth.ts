@@ -29,8 +29,8 @@ export async function login(formData: FormData) {
   await createSession({
     id: user.id,
     username: user.username,
-    role: user.role,
-    name: user.name,
+    role: user.peran,
+    name: user.nama,
   })
 
   redirect("/")

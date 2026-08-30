@@ -4,8 +4,8 @@ import { CrewsClient } from "@/components/crews-client"
 export const dynamic = 'force-dynamic'
 
 export default async function CrewsPage() {
-  const crews = await prisma.crew.findMany({
-    orderBy: { name: 'asc' },
+  const crews = await prisma.kru.findMany({
+    orderBy: { nama: 'asc' },
   })
 
   return (
