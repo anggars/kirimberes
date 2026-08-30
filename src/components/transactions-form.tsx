@@ -16,7 +16,7 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
-    transaction_no: "",
+    no_pengiriman: "",
     transaction_date: new Date().toISOString().split('T')[0],
     driver_id: "",
     helper_id: "",
@@ -42,7 +42,7 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
     async function fetchNextNo() {
       if (formData.transaction_date) {
         const nextNo = await getNextTransactionNumber(formData.transaction_date);
-        setFormData(prev => ({ ...prev, transaction_no: nextNo }));
+        setFormData(prev => ({ ...prev, no_pengiriman: nextNo }));
       }
     }
     fetchNextNo();
@@ -222,8 +222,8 @@ export function TransactionsForm({ crews, vehicles }: { crews: Crew[], vehicles:
                 readOnly
                 className="bg-muted font-mono"
                 placeholder="DDMMYYYY-XX"
-                value={formData.transaction_no}
-                onChange={(e) => setFormData({...formData, transaction_no: e.target.value})}
+                value={formData.no_pengiriman}
+                onChange={(e) => setFormData({...formData, no_pengiriman: e.target.value})}
               />
             </div>
             <div className="space-y-2">

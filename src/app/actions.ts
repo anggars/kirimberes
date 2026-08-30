@@ -45,7 +45,7 @@ export async function deleteVehicle(plate_number: string) {
 // --- TRANSACTION ACTIONS ---
 
 export async function createTransaction(data: {
-  transaction_no: string
+  no_pengiriman: string
   transaction_date: string
   driver_id: string
   helper_id: string
@@ -91,9 +91,9 @@ export async function createTransaction(data: {
     return { success: false, error: `Gagal: Invoice sudah berstatus Picked Up di sistem (${duplicates})` }
   }
 
-  await prisma.transaction.create({
+  await prisma.manifest_Pengiriman.create({
     data: {
-      transaction_no: data.transaction_no,
+      no_pengiriman: data.no_pengiriman,
       transaction_date: new Date(data.transaction_date),
       driver_id: data.driver_id,
       helper_id: data.helper_id,
@@ -138,7 +138,7 @@ export async function checkInvoiceGlobalDuplicate(invoice_no: string) {
     if (status.includes("picked up") || status === "terkirim" || status === "pending") {
       return { 
         isDuplicate: true, 
-        message: `Faktur sudah ada di dalam transaksi ${existing.transaction_no} dengan status Picked Up!` 
+        message: `Faktur sudah ada di dalam transaksi ${existing.no_pengiriman} dengan status Picked Up!` 
       }
     }
     
@@ -155,13 +155,13 @@ export async function checkInvoiceGlobalDuplicate(invoice_no: string) {
   return { isDuplicate: false }
 }
 
-export async function deleteTransaction(transaction_no: string) {
+export async function deleteTransaction(no_pengiriman: string) {
   // First delete associated invoices because of foreign key constraint
   await prisma.transactionInvoice.deleteMany({
-    where: { transaction_no },
+    where: { no_pengiriman },
   })
-  await prisma.transaction.delete({
-    where: { transaction_no },
+  await prisma.manifest_Pengiriman.delete({
+    where: { no_pengiriman },
   })
   revalidatePath("/transactions")
   revalidatePath("/")
@@ -174,14 +174,14 @@ export async function getNextTransactionNumber(dateString: string) {
   
   const prefix = `${parts[2]}${parts[1]}${parts[0]}`; // DDMMYYYY
   
-  const transactions = await prisma.transaction.findMany({
-    where: { transaction_no: { startsWith: prefix } },
-    select: { transaction_no: true }
+  const transactions = await prisma.manifest_Pengiriman.findMany({
+    where: { no_pengiriman: { startsWith: prefix } },
+    select: { no_pengiriman: true }
   });
 
   let maxSeq = 0;
   for (const t of transactions) {
-    const p = t.transaction_no.split('-');
+    const p = t.no_pengiriman.split('-');
     if (p.length === 2) {
       const seq = parseInt(p[1], 10);
       if (!isNaN(seq) && seq > maxSeq) {

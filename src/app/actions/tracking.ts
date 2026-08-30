@@ -10,7 +10,7 @@ export async function getTrackingHistory(invoice_no: string) {
       where: { invoice_no },
       orderBy: { id: "desc" },
       include: {
-        transaction: {
+        manifest: {
           include: {
             driver: true,
             helper: true,
@@ -50,7 +50,7 @@ export async function updateTrackingStatus(formData: FormData) {
     const invoice = await prisma.transactionInvoice.findFirst({
       where: { invoice_no },
       orderBy: { id: "desc" },
-      include: { transaction: true }
+      include: { manifest: true }
     })
 
     if (!invoice) return { error: "Nomor resi tidak ditemukan di sistem" }
@@ -78,7 +78,7 @@ export async function updateTrackingStatus(formData: FormData) {
     if (status === "DELIVERED") {
       try {
         const doResult = await createDeliveryOrder(
-          invoice.transaction.transaction_no,
+          invoice.manifest.no_pengiriman,
           new Date().toISOString(),
           [invoice.invoice_no]
         );

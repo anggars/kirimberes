@@ -134,7 +134,7 @@ export function ReturForm() {
                 </div>
                 <div>
                   <p className="text-muted-foreground">No. Transaksi / Manifest</p>
-                  <p className="font-mono">{invoiceData.transaction_no}</p>
+                  <p className="font-mono">{invoiceData.no_pengiriman}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Pelanggan</p>

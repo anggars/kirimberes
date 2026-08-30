@@ -5,14 +5,14 @@ import { Trash2 } from "lucide-react"
 import { deleteTransaction } from "@/app/actions"
 import { useState } from "react"
 
-export function DeleteTransactionButton({ transaction_no }: { transaction_no: string }) {
+export function DeleteTransactionButton({ no_pengiriman }: { no_pengiriman: string }) {
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleDelete = async () => {
     if (confirm("Yakin ingin menghapus manifest transaksi ini beserta semua invoicenya?")) {
       setIsDeleting(true)
       try {
-        await deleteTransaction(transaction_no)
+        await deleteTransaction(no_pengiriman)
       } catch (error) {
         console.error(error)
         alert("Gagal menghapus transaksi.")

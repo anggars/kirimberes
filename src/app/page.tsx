@@ -9,11 +9,11 @@ export default async function Dashboard() {
   const [totalVehicles, totalCrews, totalTransactions, totalInvoices] = await Promise.all([
     prisma.vehicle.count(),
     prisma.crew.count(),
-    prisma.transaction.count(),
+    prisma.manifest_Pengiriman.count(),
     prisma.transactionInvoice.count(),
   ])
 
-  const recentTransactions = await prisma.transaction.findMany({
+  const recentTransactions = await prisma.manifest_Pengiriman.findMany({
     take: 5,
     orderBy: { transaction_date: 'desc' },
     include: {
@@ -86,13 +86,13 @@ export default async function Dashboard() {
           <CardContent>
             <div className="space-y-8">
               {recentTransactions.map((tx) => (
-                <div key={tx.transaction_no} className="flex items-center">
+                <div key={tx.no_pengiriman} className="flex items-center">
                   <div className="bg-primary/10 p-2 rounded-full mr-4">
                     <Truck className="h-4 w-4 text-primary" />
                   </div>
                   <div className="space-y-1 flex-1">
                     <p className="text-sm font-medium leading-none">
-                      {tx.transaction_no} - {tx.vehicle.plate_number}
+                      {tx.no_pengiriman} - {tx.vehicle.plate_number}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       Supir: {tx.driver.name} | {tx.invoices.length} invoice

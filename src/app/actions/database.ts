@@ -21,8 +21,8 @@ export async function getTableData(tableName: string) {
       case "Vehicle": 
         data = await prisma.vehicle.findMany({ take: 100 }); 
         break;
-      case "Transaction": 
-        data = await prisma.transaction.findMany({ take: 100, orderBy: { transaction_date: 'desc' } }); 
+      case "Manifest_Pengiriman": 
+        data = await prisma.manifest_Pengiriman.findMany({ take: 100, orderBy: { transaction_date: 'desc' } }); 
         break;
       case "TransactionInvoice": 
         data = await prisma.transactionInvoice.findMany({ take: 100, orderBy: { id: 'desc' } }); 
@@ -56,7 +56,7 @@ export async function deleteAllTransactions() {
     // Let's delete from bottom up
     await prisma.invoiceItem.deleteMany({});
     await prisma.transactionInvoice.deleteMany({});
-    await prisma.transaction.deleteMany({});
+    await prisma.manifest_Pengiriman.deleteMany({});
     
     return { success: true };
   } catch (error: any) {

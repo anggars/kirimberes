@@ -49,7 +49,7 @@ export async function searchLocalInvoice(invoice_no: string) {
       where: { invoice_no },
       orderBy: { id: "desc" },
       include: {
-        transaction: {
+        manifest: {
           include: {
             driver: true,
             helper: true,
@@ -73,12 +73,12 @@ export async function searchLocalInvoice(invoice_no: string) {
       data: {
         id: existing.id,
         invoice_no: existing.invoice_no,
-        transaction_no: existing.transaction_no,
+        no_pengiriman: existing.no_pengiriman,
         customer_name: existing.customer_name,
         total_amount: existing.total_amount,
-        driver_name: existing.transaction.driver.name,
-        helper_name: existing.transaction.helper.name,
-        vehicle_plate: existing.transaction.vehicle.plate_number,
+        driver_name: existing.manifest.driver.name,
+        helper_name: existing.manifest.helper.name,
+        vehicle_plate: existing.manifest.vehicle.plate_number,
         items: existing.items
       }
     };
@@ -118,7 +118,7 @@ export async function submitReturn(
         data: {
           nomer_retur_pengiriman,
           nomer_faktur: existing.invoice_no,
-          nomer_piked_up: existing.transaction_no,
+          nomer_piked_up: existing.no_pengiriman,
           tanggal_faktur_acc: new Date(), // using current date
           alasan_retur: return_reason,
           jenis_retur: return_type
@@ -133,7 +133,7 @@ export async function submitReturn(
           data: itemsToSave.map(item => ({
             nomer_retur_pengiriman,
             nomer_faktur: existing.invoice_no,
-            nomer_piked_up: existing.transaction_no,
+            nomer_piked_up: existing.no_pengiriman,
             nama_barang: item.item_name || item.item_name,
             qty: item.qty,
             satuan: item.satuan || "PCS"
@@ -164,7 +164,7 @@ export async function submitReturn(
 
     revalidatePath("/retur");
     revalidatePath("/transactions");
-    revalidatePath(`/transactions/${existing.transaction_no}`);
+    revalidatePath(`/transactions/${existing.no_pengiriman}`);
     
     return { success: true, nomer_retur_pengiriman };
   } catch (error: any) {

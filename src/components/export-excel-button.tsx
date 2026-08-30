@@ -11,7 +11,7 @@ export function ExportExcelButton({ transactions }: { transactions: any[] }) {
     transactions.forEach((tx) => {
       if (tx.invoices.length === 0) {
         excelData.push({
-          "No Transaksi": tx.transaction_no,
+          "No Transaksi": tx.no_pengiriman,
           "Tanggal": new Date(tx.transaction_date).toLocaleDateString('id-ID'),
           "Supir": tx.driver.name,
           "Kenek": tx.helper.name,
@@ -25,7 +25,7 @@ export function ExportExcelButton({ transactions }: { transactions: any[] }) {
 
       tx.invoices.forEach((inv: any, index: number) => {
         excelData.push({
-          "No Transaksi": tx.transaction_no,
+          "No Transaksi": tx.no_pengiriman,
           "Tanggal": new Date(tx.transaction_date).toLocaleDateString('id-ID'),
           "Supir": tx.driver.name,
           "Kenek": tx.helper.name,
@@ -51,7 +51,7 @@ export function ExportExcelButton({ transactions }: { transactions: any[] }) {
 
   const handleExportCombined = () => {
     const excelData = transactions.map((tx) => ({
-      "No Transaksi": tx.transaction_no,
+      "No Transaksi": tx.no_pengiriman,
       "Tanggal": new Date(tx.transaction_date).toLocaleDateString('id-ID'),
       "Supir": tx.driver.name,
       "Kenek": tx.helper.name,

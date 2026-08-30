@@ -4,10 +4,10 @@ import React from "react"
 
 export default async function PrintTransactionPage(props: { params: Promise<{ transaction_no: string }> }) {
   const params = await props.params
-  const transaction_no = decodeURIComponent(params.transaction_no)
+  const no_pengiriman = decodeURIComponent(params.transaction_no)
 
-  const tx: any = await prisma.transaction.findUnique({
-    where: { transaction_no },
+  const tx: any = await prisma.manifest_Pengiriman.findUnique({
+    where: { no_pengiriman },
     include: {
       driver: true,
       helper: true,
@@ -39,7 +39,7 @@ export default async function PrintTransactionPage(props: { params: Promise<{ tr
       <div className="flex justify-between items-start mb-4">
         <div>
           <h1 className="text-lg font-bold">Laporan Pengiriman Barang</h1>
-          <p className="text-[10px] text-gray-500 mt-1">No. Transaksi: {tx.transaction_no}</p>
+          <p className="text-[10px] text-gray-500 mt-1">No. Transaksi: {tx.no_pengiriman}</p>
         </div>
         
         <table className="text-xs">

@@ -104,7 +104,7 @@ export function TrackingModal({ invoice_no }: { invoice_no: string }) {
             </div>
             
             <div className="mt-4 pt-4 border-t text-xs text-muted-foreground">
-              Tergabung dalam Manifest: <span className="font-mono font-medium">{data.transaction_no}</span>
+              Tergabung dalam Manifest: <span className="font-mono font-medium">{data.no_pengiriman}</span>
             </div>
           </div>
         )}

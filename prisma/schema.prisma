@@ -14,7 +14,7 @@ model User {
   role     String @default("USER") // ADMIN or USER
   name     String?
 
-  transactions Transaction[]
+  manifests Manifest_Pengiriman[]
 }
 
 model Crew {
@@ -23,8 +23,8 @@ model Crew {
   gender  String
   address String
 
-  driverTransactions Transaction[] @relation("DriverRelation")
-  helperTransactions Transaction[] @relation("HelperRelation")
+  driverTransactions Manifest_Pengiriman[] @relation("DriverRelation")
+  helperTransactions Manifest_Pengiriman[] @relation("HelperRelation")
 }
 
 model Vehicle {
@@ -32,11 +32,11 @@ model Vehicle {
   vehicle_name String
   brand        String
 
-  transactions Transaction[]
+  manifests Manifest_Pengiriman[]
 }
 
-model Transaction {
-  transaction_no   String   @id
+model Manifest_Pengiriman {
+  no_pengiriman    String   @id
   transaction_date DateTime
 
   driver_id String
@@ -58,8 +58,8 @@ model Transaction {
 
 model TransactionInvoice {
   id               Int         @id @default(autoincrement())
-  transaction_no   String
-  transaction      Transaction @relation(fields: [transaction_no], references: [transaction_no], onDelete: Cascade)
+  no_pengiriman    String
+  manifest         Manifest_Pengiriman @relation(fields: [no_pengiriman], references: [no_pengiriman], onDelete: Cascade)
   invoice_no       String
   status           String      @default("TERKIRIM") // TERKIRIM, RETURNED
   return_reason    String?
@@ -109,7 +109,7 @@ model ReturTransaksi {
   created_at             DateTime @default(now())
 
   // Relations
-  manifest Transaction       @relation(fields: [nomer_piked_up], references: [transaction_no])
+  manifest Manifest_Pengiriman       @relation(fields: [nomer_piked_up], references: [no_pengiriman])
 
   rincian RincianRetur[]
 }

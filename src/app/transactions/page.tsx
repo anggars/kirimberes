@@ -92,9 +92,9 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
   let errorMsg = null
 
   try {
-    transactions = await prisma.transaction.findMany({
+    transactions = await prisma.manifest_Pengiriman.findMany({
       where: whereClause,
-      orderBy: { transaction_no: 'desc' },
+      orderBy: { no_pengiriman: 'desc' },
       take: 100,
       include: {
         driver: true,
@@ -159,10 +159,10 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
               </TableHeader>
               <TableBody>
                 {transactions.map((tx) => (
-                  <TableRow key={tx.transaction_no}>
+                  <TableRow key={tx.no_pengiriman}>
                     <TableCell className="font-medium">
                       <div className="flex flex-col space-y-1">
-                        <span className="font-bold text-primary">{tx.transaction_no}</span>
+                        <span className="font-bold text-primary">{tx.no_pengiriman}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -217,8 +217,8 @@ export default async function TransactionsPage(props: { searchParams: Promise<{ 
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <PrintManifestButton transaction_no={tx.transaction_no} />
-                        {isAdmin && <DeleteTransactionButton transaction_no={tx.transaction_no} />}
+                        <PrintManifestButton no_pengiriman={tx.no_pengiriman} />
+                        {isAdmin && <DeleteTransactionButton no_pengiriman={tx.no_pengiriman} />}
                       </div>
                     </TableCell>
                   </TableRow>
