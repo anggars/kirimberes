@@ -19,17 +19,14 @@ jobs:
       with:
         node-version: '20'
 
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v4
-
     - name: Install Dependencies
-      run: pnpm install --frozen-lockfile --config.node-linker=hoisted
+      run: npm install
 
     - name: Generate Prisma Client
-      run: pnpm exec prisma generate
+      run: npx prisma generate
 
     - name: Build Project (Standalone)
-      run: pnpm run build
+      run: npm run build
       env:
         NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
         SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
