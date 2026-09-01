@@ -1,0 +1,13 @@
+name: Fetch Logs
+on:
+  push:
+    branches:
+      - master
+jobs:
+  fetch-logs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch stderr.log via lftp
+        run: |
+          sudo apt-get install lftp
+          lftp -c "open -u kirimberes@anakmasindah.com,Anakmasindah#123 ftp://136.0.37.118; cat public_html/kirimberes.anakmasindah.com/stderr.log"
