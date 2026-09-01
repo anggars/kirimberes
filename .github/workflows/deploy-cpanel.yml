@@ -46,7 +46,9 @@ jobs:
     - name: Patch server.js for cPanel Passenger
       run: |
         sed -i 's/parseInt(process.env.PORT, 10) || 3000/process.env.PORT || 3000/g' .deploy/server.js
-        rm -f .gitignore
+        cd .deploy && zip -r ../deploy.zip . && cd ..
+        mkdir -p .upload
+        mv deploy.zip .upload/
 
     - name: Deploy to FTP (cPanel)
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -54,10 +56,5 @@ jobs:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: .deploy/
+        local-dir: .upload/
         server-dir: ${{ secrets.FTP_SERVER_DIR }}
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/.github*/**
-          **/.github*
