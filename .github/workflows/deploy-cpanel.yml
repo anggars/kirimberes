@@ -23,7 +23,7 @@ jobs:
       uses: pnpm/action-setup@v4
 
     - name: Install Dependencies
-      run: pnpm install --frozen-lockfile
+      run: pnpm install --frozen-lockfile --config.node-linker=hoisted
 
     - name: Generate Prisma Client
       run: pnpm exec prisma generate
