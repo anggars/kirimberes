@@ -43,6 +43,10 @@ jobs:
         mkdir -p .deploy/public
         if [ -d "public" ]; then cp -r public/* .deploy/public/; fi
 
+    - name: Patch server.js for cPanel Passenger
+      run: |
+        sed -i 's/parseInt(process.env.PORT, 10) || 3000/process.env.PORT || 3000/g' .deploy/server.js
+
     - name: Deploy to FTP (cPanel)
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
