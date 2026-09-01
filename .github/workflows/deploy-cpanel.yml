@@ -46,6 +46,8 @@ jobs:
     - name: Patch server.js for cPanel Passenger
       run: |
         sed -i 's/parseInt(process.env.PORT, 10) || 3000/process.env.PORT || 3000/g' .deploy/server.js
+        echo 'DATABASE_URL="mysql://anaj5838_kirimberes:Anakmasindah%23123@localhost:3306/anaj5838_kirimberes"' > .deploy/.env.production
+        echo 'SESSION_SECRET="KirimBeresSangatRahasia2026!"' >> .deploy/.env.production
         cd .deploy && zip -r ../deploy.zip . && cd ..
         mkdir -p .upload
         mv deploy.zip .upload/
