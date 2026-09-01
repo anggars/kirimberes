@@ -27,6 +27,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npx prisma generate
+RUN sed -i 's/const nextConfig: NextConfig = {/const nextConfig: NextConfig = { output: "standalone",/g' next.config.ts
 RUN npm run build
 
 # Production image, copy all the files and run next
