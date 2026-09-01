@@ -37,11 +37,11 @@ jobs:
     - name: Prepare Files for FTP
       run: |
         mkdir -p .deploy
-        cp -r .next/standalone/* .deploy/
+        cp -a .next/standalone/. .deploy/
         mkdir -p .deploy/.next/static
-        cp -r .next/static/* .deploy/.next/static/
+        cp -a .next/static/. .deploy/.next/static/
         mkdir -p .deploy/public
-        if [ -d "public" ]; then cp -r public/* .deploy/public/; fi
+        if [ -d "public" ]; then cp -a public/. .deploy/public/; fi
 
     - name: Patch server.js for cPanel Passenger
       run: |
