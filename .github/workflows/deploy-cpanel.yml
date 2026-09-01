@@ -18,16 +18,20 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'npm'
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v3
+      with:
+        version: 9
 
     - name: Install Dependencies
-      run: npm ci
+      run: pnpm install --frozen-lockfile
 
     - name: Generate Prisma Client
-      run: npx prisma generate
+      run: pnpm exec prisma generate
 
     - name: Build Project (Standalone)
-      run: npm run build
+      run: pnpm run build
       env:
         NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
         SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
