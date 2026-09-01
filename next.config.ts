@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // cPanel specific configuration removed, Vercel will auto-configure
   /* config options here */
 };
 
